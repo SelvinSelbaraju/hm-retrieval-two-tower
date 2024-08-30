@@ -1,8 +1,10 @@
 from typing import List
+import logging
 import pickle
 import pandas as pd
 from pkg.schema.features import Feature
-from pkg.utils.logger import logger
+
+logger = logging.getLogger(__name__)
 
 class Schema:
     """
