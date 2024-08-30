@@ -1,3 +1,6 @@
+import tensorflow as tf
+from pkg.schema.schema import Schema
+from pkg.schema.features import Feature
 from pkg.utils.settings import Settings
 from pkg.etl.runner import etl_runner
 
@@ -8,9 +11,24 @@ settings = Settings(
     date_col_name="t_dat",
     train_data_filepath="./data/train.csv",
     test_data_filepath="./data/test.csv",
-    schema_filepath="FIX ME!"
+    schema_filepath="./data/schema.pkl"
 )
 
-etl_runner(settings)
+schema = Schema(
+    features=[
+        Feature(
+            "customer_id",
+            tf.string,
+            max_vocab_size=100000,
+        ),
+        Feature(
+            "article_id",
+            tf.string,
+            max_vocab_size=100000
+        )
+    ]
+)
+
+etl_runner(settings, schema)
 
 

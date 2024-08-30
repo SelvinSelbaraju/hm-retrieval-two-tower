@@ -35,10 +35,11 @@ class Feature:
         else:
             self.dtype = dtype
 
-        if self.vocab:
+        if vocab:
             self.vocab = set(vocab)
             self.is_built = True
         else:
+            self.vocab = vocab
             self.is_built = False
         
         if max_vocab_size:

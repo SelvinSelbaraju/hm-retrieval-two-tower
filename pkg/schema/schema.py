@@ -31,7 +31,7 @@ class Schema:
             if not feature.is_built:
                 feature.set_vocab_from_dataframe(df)
     
-    def save(self, filepath: str):
+    def save(self, filepath: str) -> None:
         """
         Save the Schema as a pickle to be used later
 
@@ -43,5 +43,13 @@ class Schema:
         logger.info(f"Saving Schema obj at filepath: {filepath}")
         with open(filepath, "wb") as f:
             pickle.dump(self, f)
+    
+
+    @classmethod
+    def load_from_filepath(cls, filepath: str) -> "Schema":
+        logger.info(f"Loading Schema obj from {filepath}")
+        with open(filepath, "rb") as f:
+            schema = pickle.load(f)
+        return schema
         
 
