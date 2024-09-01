@@ -3,6 +3,7 @@ from pkg.schema.schema import Schema
 from pkg.schema.features import Feature
 from pkg.utils.settings import Settings
 from pkg.etl.runner import etl_runner
+from pkg.tfrecord_writer.runner import tfrecord_writer_runner
 
 settings = Settings(
     raw_data_filepath="./data/transactions_train.csv",
@@ -11,6 +12,9 @@ settings = Settings(
     date_col_name="t_dat",
     train_data_filepath="./data/train.csv",
     test_data_filepath="./data/test.csv",
+    train_data_tfrecord_path="./data/tfrecords/train",
+    test_data_tfrecord_path="./data/tfrecords/test",
+    max_tfrecord_rows=100000,
     schema_filepath="./data/schema.pkl"
 )
 
@@ -29,6 +33,7 @@ schema = Schema(
     ]
 )
 
-etl_runner(settings, schema)
+# etl_runner(settings, schema)
+tfrecord_writer_runner(settings)
 
 
