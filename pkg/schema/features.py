@@ -13,6 +13,8 @@ class Feature:
         name of the feature
     dtype: tf.dtypes.DType
         Tensorflow dtype, must be one of valid types
+    embedding_size: Optional[int]
+        For categorical, embedding dimension
     vocab: Optional[List[str]]
         For categorical, values the feature can take
         Any new values seen will be set as unknown in the model
@@ -25,6 +27,7 @@ class Feature:
         self,
         name: str,
         dtype: tf.dtypes.DType,
+        embedding_size: Optional[int] = None,
         vocab: Optional[List[str]] = None,
         max_vocab_size: Optional[int] = None,
     ):
@@ -35,6 +38,11 @@ class Feature:
         else:
             self.dtype = dtype
 
+        if embedding_size:
+            if dtype != tf.string:
+                raise TypeError(f"Got embedding size, dtype must be tf.string got {dtype}")
+        self.embedding_size = embedding_size
+        
         if vocab:
             self.vocab = set(vocab)
             self.is_built = True

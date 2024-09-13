@@ -25,11 +25,13 @@ schema = Schema(
         Feature(
             "customer_id",
             tf.string,
+            embedding_size=64,
             max_vocab_size=100000,
         ),
         Feature(
             "article_id",
             tf.string,
+            embedding_size=64,
             max_vocab_size=100000
         )
     ],
