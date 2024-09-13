@@ -1,4 +1,5 @@
 import tensorflow as tf
+from pkg.schema.model_config import ModelConfig
 from pkg.schema.schema import Schema
 from pkg.schema.training_config import TrainingConfig
 from pkg.schema.features import Feature
@@ -36,12 +37,19 @@ schema = Schema(
         )
     ],
     training_config=TrainingConfig(
-        64,
+        128,
         1000
+    ),
+    model_config=ModelConfig(
+        ["customer_id"],
+        ["article_id"],
+        32,
+        [64,64],
+        [64,64]
     )
 )
 
-# etl_runner(settings, schema)
+etl_runner(settings, schema)
 # tfrecord_writer_runner(settings)
 modelling_runner(settings)
 

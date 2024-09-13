@@ -4,6 +4,7 @@ import os
 import pickle
 import pandas as pd
 from pkg.schema.features import Feature
+from pkg.schema.model_config import ModelConfig
 from pkg.schema.training_config import TrainingConfig
 
 logger = logging.getLogger(__name__)
@@ -19,9 +20,10 @@ class Schema:
     training_config: TrainingConfig
         Training configuration
     """
-    def __init__(self, features: List[Feature], training_config: TrainingConfig):
+    def __init__(self, features: List[Feature], training_config: TrainingConfig, model_config: ModelConfig):
         self.features = features
         self.training_config = training_config
+        self.model_config = model_config
     
     def build_features_from_dataframe(self, df: pd.DataFrame) -> None:
         """
