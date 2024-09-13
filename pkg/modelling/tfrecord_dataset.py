@@ -7,6 +7,14 @@ from pkg.schema.features import Feature
 logger = logging.getLogger(__name__)
 
 class TFRecordDatasetFactory:
+    """
+    Creates TFRecord Datasets given a list of Feature objs
+
+    Parameters
+    ----------
+    features: List[Feature]
+        List of Feature objs containing tf dtypes
+    """
     def __init__(
         self,
         features: List[Feature]

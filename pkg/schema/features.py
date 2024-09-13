@@ -72,6 +72,8 @@ class Feature:
             self.vocab = list(v_counts.head(self.max_vocab_size).index)
         else:
             self.vocab = list(v_counts.index)
+        # The vocab must all be strings
+        self.vocab = [str(x) for x in self.vocab]
         self.is_built = True
 
 
