@@ -3,7 +3,7 @@ import logging
 import os
 import pickle
 import pandas as pd
-from pkg.schema.features import Feature
+from pkg.schema.features import Feature, FeatureFamily
 from pkg.schema.model_config import ModelConfig
 from pkg.schema.training_config import TrainingConfig
 
@@ -22,6 +22,8 @@ class Schema:
     """
     def __init__(self, features: List[Feature], training_config: TrainingConfig, model_config: ModelConfig):
         self.features = features
+        self.item_features = [f for f in features if f.feature_family == FeatureFamily.ITEM]
+        self.user_features = [f for f in features if f.feature_family == FeatureFamily.USER]
         self.training_config = training_config
         self.model_config = model_config
     

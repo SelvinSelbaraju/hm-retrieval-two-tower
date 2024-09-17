@@ -13,6 +13,7 @@ settings = Settings(
     train_data_size=500000,
     test_data_size=100000,
     date_col_name="t_dat",
+    candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
     test_data_filepath="./data/test.csv",
     train_data_tfrecord_path="./data/tfrecords/train/train",
@@ -49,7 +50,7 @@ schema = Schema(
     )
 )
 
-etl_runner(settings, schema)
+# etl_runner(settings, schema)
 # tfrecord_writer_runner(settings)
 modelling_runner(settings)
 

@@ -44,7 +44,7 @@ class TFRecordDatasetFactory:
       return tf.io.parse_single_example(example_proto, self.feature_description)
 
 
-    def create_tfrecord_dataset(self, file_dir: str, batch_size: int, shuffle_size: Optional[int]) -> tf.data.TFRecordDataset:
+    def create_tfrecord_dataset(self, file_dir: str, batch_size: int, shuffle_size: Optional[int] = None) -> tf.data.TFRecordDataset:
         """
         Create a TFRecord Dataset from a directory of TFRecords
         Returns a TFRecordDataset object
