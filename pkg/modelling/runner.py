@@ -1,8 +1,10 @@
 import os
 import logging
+import tensorflow as tf
 from pkg.modelling.tfrecord_dataset import TFRecordDatasetFactory
 from pkg.utils.settings import Settings
 from pkg.schema.schema import Schema
+from pkg.modelling.models.two_tower_model import TwoTowerModel
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,10 @@ def modelling_runner(settings: Settings):
         schema.training_config.train_batch_size,
         schema.training_config.shuffle_size,
     )
-    for i in train_ds.take(1):
-        print(i)
+    model = TwoTowerModel.create_from_schema(schema)
+    model.compile(
+        loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+        optimizer="adam"
+    )
+    model.fit(train_ds, epochs=1)
     logger.info("--- Modelling Finishing ---")
