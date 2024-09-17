@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
 import tensorflow as tf
 from pkg.modelling.models.tower import Tower
-from pkg.schema.features import Feature
+from pkg.schema.features import Feature, FeatureFamily
 from pkg.schema.schema import Schema
 
 class TwoTowerModel(tf.keras.Model):
@@ -75,8 +75,8 @@ class TwoTowerModel(tf.keras.Model):
     @classmethod
     def create_from_schema(cls, schema: Schema) -> "TwoTowerModel":
         return TwoTowerModel(
-            user_features=[f for f in schema.features if f.name in schema.model_config.user_features],
-            item_features=[f for f in schema.features if f.name in schema.model_config.item_features],
+            user_features=[f for f in schema.features if f.feature_family == FeatureFamily.USER],
+            item_features=[f for f in schema.features if f.feature_family == FeatureFamily.ITEM],
             joint_embedding_size=schema.model_config.joint_embedding_size,
             user_tower_units=schema.model_config.user_tower_units,
             item_tower_units=schema.model_config.item_tower_units

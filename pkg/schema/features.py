@@ -1,8 +1,17 @@
 from typing import Optional, List
+from enum import Enum
 import pandas as pd
 import tensorflow as tf
-# For now, Feature has a name, vocabulary, data type
 
+class FeatureFamily(Enum):
+    """
+    The families which features can be part of
+    Features can either be user features or item features
+    """
+    USER = "user"
+    ITEM = "item"
+
+# For now, Feature has a name, vocabulary, data type
 class Feature:
     """
     Class which contains all of the information for an input feature
@@ -13,6 +22,8 @@ class Feature:
         name of the feature
     dtype: tf.dtypes.DType
         Tensorflow dtype, must be one of valid types
+    feature_family: FeatureFamily
+        Must be one of the families specified in the FeatureFamily enum
     embedding_size: Optional[int]
         For categorical, embedding dimension
     vocab: Optional[List[str]]
@@ -27,16 +38,19 @@ class Feature:
         self,
         name: str,
         dtype: tf.dtypes.DType,
+        feature_family: FeatureFamily,
         embedding_size: Optional[int] = None,
         vocab: Optional[List[str]] = None,
         max_vocab_size: Optional[int] = None,
     ):
         self.name = name
-
         if dtype not in self.VALID_DTYPES:
             raise TypeError(f"dtype must be one of {self.VALID_DTYPES}, got {dtype}")
-        else:
-            self.dtype = dtype
+        self.dtype = dtype
+
+        if feature_family not in FeatureFamily:
+            raise ValueError(f"feature family {feature_family} not valid. Must be one of {FeatureFamily._member_names_}")
+        self.feature_family = feature_family
 
         if embedding_size:
             if dtype != tf.string:
