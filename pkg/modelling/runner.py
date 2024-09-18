@@ -5,6 +5,7 @@ from pkg.modelling.tfrecord_dataset import TFRecordDatasetFactory
 from pkg.utils.settings import Settings
 from pkg.schema.schema import Schema
 from pkg.modelling.models.two_tower_model import TwoTowerModel
+from pkg.modelling.indices.brute_force import BruteForceIndex
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +27,16 @@ def modelling_runner(settings: Settings):
     )
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.candidate_tfrecord_path),
-        1
     )
-    # model = TwoTowerModel.create_from_schema(schema)
-    # model.compile(
-    #     loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-    #     optimizer="adam"
-    # )
+    model = TwoTowerModel.create_from_schema(schema)
+    model.compile(
+        loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+        optimizer="adam"
+    )
+    candidate_ds = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
+    index = BruteForceIndex(10, model.user_tower)
+    index.index(candidate_ds)
+    for i in train_ds.take(1):
+        print(index(i))
     # model.fit(train_ds, epochs=1)
     logger.info("--- Modelling Finishing ---")
