@@ -44,7 +44,7 @@ class TFRecordDatasetFactory:
       return tf.io.parse_single_example(example_proto, self.feature_description)
 
 
-    def create_tfrecord_dataset(self, file_dir: str, batch_size: int, shuffle_size: Optional[int] = None) -> tf.data.TFRecordDataset:
+    def create_tfrecord_dataset(self, file_dir: str, batch_size: Optional[int] = None, shuffle_size: Optional[int] = None) -> tf.data.TFRecordDataset:
         """
         Create a TFRecord Dataset from a directory of TFRecords
         Returns a TFRecordDataset object
@@ -53,6 +53,10 @@ class TFRecordDatasetFactory:
         ----------
         file_dir: str
             Directory where TFRecords are stored
+        batch_size: Optional[int]
+            Yield batches of these size if provided
+        shuffle_size: Optional[int]
+            Shuffle buffer of this size if provided
         """
         filenames = [os.path.join(file_dir, file) for file in os.listdir(file_dir) if file.endswith(".tfrecord")]
         ds = tf.data.TFRecordDataset(filenames)
@@ -60,8 +64,9 @@ class TFRecordDatasetFactory:
         if shuffle_size:
             logger.info(f"Shuffling dataset using shuffle size: {shuffle_size}")
             ds = ds.shuffle(shuffle_size)
-        logger.info(f"Batching data using batch_size: {batch_size}")
-        ds = ds.batch(batch_size)
+        if batch_size:
+            logger.info(f"Batching data using batch_size: {batch_size}")
+            ds = ds.batch(batch_size)
         return ds
 
 
