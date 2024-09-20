@@ -6,6 +6,7 @@ from pkg.utils.settings import Settings
 from pkg.schema.schema import Schema
 from pkg.modelling.models.two_tower_model import TwoTowerModel
 from pkg.modelling.indices.brute_force import BruteForceIndex
+from pkg.modelling.metrics.index_recall import IndexRecall
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,10 @@ def modelling_runner(settings: Settings):
         schema.training_config.train_batch_size,
         schema.training_config.shuffle_size,
     )
+    test_ds = ds_factory.create_tfrecord_dataset(
+        os.path.dirname(settings.test_data_tfrecord_path),
+        batch_size=schema.training_config.test_batch_size,
+    )
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.candidate_tfrecord_path),
     )
@@ -34,9 +39,17 @@ def modelling_runner(settings: Settings):
         optimizer="adam"
     )
     candidate_ds = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
-    index = BruteForceIndex(10, model.user_tower)
-    index.index(candidate_ds)
-    for i in train_ds.take(1):
-        print(index(i))
-    # model.fit(train_ds, epochs=1)
+    for i in range(schema.training_config.epochs):
+        index = BruteForceIndex(1000, model.user_tower)
+        index.index(candidate_ds)
+        metric_calc = IndexRecall(index)
+        for batch in test_ds:
+            metric_calc(batch, batch["article_id"])
+        logger.info(f"Start of epoch {i} recall:{metric_calc.metric.numpy()}")
+        model.fit(train_ds, epochs=1)
+        model.compile(
+            loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+            optimizer="adam"
+        )
+    logger.info(f"Recall@k: {metric_calc.metric.numpy()}")
     logger.info("--- Modelling Finishing ---")

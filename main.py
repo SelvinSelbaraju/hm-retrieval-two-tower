@@ -10,8 +10,8 @@ from pkg.modelling.runner import modelling_runner
 
 settings = Settings(
     raw_data_filepath="./data/transactions_train.csv",
-    train_data_size=500000,
-    test_data_size=100000,
+    train_data_size=2000000,
+    test_data_size=500000,
     date_col_name="t_dat",
     candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
@@ -40,17 +40,19 @@ schema = Schema(
         )
     ],
     training_config=TrainingConfig(
-        128,
-        1000
+        train_batch_size=512,
+        test_batch_size=2**15,
+        shuffle_size=1000,
+        epochs=5
     ),
     model_config=ModelConfig(
-        32,
-        [64,64],
-        [64,64]
+        128,
+        [256],
+        [256]
     )
 )
 
-# etl_runner(settings, schema)
-# tfrecord_writer_runner(settings)
+etl_runner(settings, schema)
+tfrecord_writer_runner(settings)
 modelling_runner(settings)
 

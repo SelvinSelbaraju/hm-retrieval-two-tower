@@ -16,7 +16,7 @@ class BruteForceIndex(tf.keras.Model):
     def __init__(
         self,
         k: int,
-        user_model: Optional[tf.keras.Model] = None
+        user_model: tf.keras.Model
     ):
         super().__init__()
         self.k = k
@@ -44,15 +44,14 @@ class BruteForceIndex(tf.keras.Model):
         )
         self._candidates.assign(candidates)
     
-    def call(self, users: Union[Dict[str, tf.Tensor], tf.Tensor]) -> tf.Tensor:
+    def call(self, users: Dict[str, tf.Tensor]) -> tf.Tensor:
         """
         Return the top k candidates for a set of users
 
         Parameters
         ----------
         users: tf.Tensor
-            If a user_model was provided at init, must be a dict of tensors for the user tower
-            Otherwise, users should be a [num_users,embedding_dim] tensor
+            Must be a dict of tensors for the user tower
         """
         if self.user_model:
             user_embeddings = self.user_model(users)
