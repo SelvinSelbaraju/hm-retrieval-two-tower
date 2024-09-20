@@ -1,4 +1,6 @@
+import os
 from typing import List, Optional, Dict
+import logging
 import tensorflow as tf
 from pkg.modelling.models.tower import Tower
 from pkg.schema.features import Feature
@@ -81,6 +83,19 @@ class TwoTowerModel(tf.keras.Model):
             user_tower_units=schema.model_config.user_tower_units,
             item_tower_units=schema.model_config.item_tower_units
         )
+
+    def save(self, model_path: str) -> None:
+        """
+        Save the model at the path
+        
+        Parameters
+        ----------
+        model_path: str
+            The path to save the model at
+        """
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        logging.info(f"Saving model at path: {model_path}")
+        tf.saved_model.save(self, model_path)
 
     
 

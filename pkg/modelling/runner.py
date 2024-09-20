@@ -40,6 +40,7 @@ def modelling_runner(settings: Settings):
     )
     candidate_ds = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
     for i in range(schema.training_config.epochs):
+        model.save(settings.trained_model_path)
         index = BruteForceIndex(1000, model.user_tower)
         index.index(candidate_ds)
         metric_calc = IndexRecall(index)

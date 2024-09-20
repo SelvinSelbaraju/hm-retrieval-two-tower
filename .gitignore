@@ -1,3 +1,4 @@
 # Testing
 *.pyc
 data/
+model/

@@ -10,8 +10,8 @@ from pkg.modelling.runner import modelling_runner
 
 settings = Settings(
     raw_data_filepath="./data/transactions_train.csv",
-    train_data_size=2000000,
-    test_data_size=500000,
+    train_data_size=15000000,
+    test_data_size=2000000,
     date_col_name="t_dat",
     candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
@@ -19,7 +19,8 @@ settings = Settings(
     train_data_tfrecord_path="./data/tfrecords/train/train",
     test_data_tfrecord_path="./data/tfrecords/test/test",
     max_tfrecord_rows=100000,
-    schema_filepath="./data/schema.pkl"
+    schema_filepath="./data/schema.pkl",
+    trained_model_path="./model"
 )
 
 schema = Schema(

@@ -30,6 +30,8 @@ class Settings:
         Filepath to save and read test TFRecords
     schema_filepath: str
         Filepath to save and read the Schema obj
+    trained_model_path: str
+        Path to save the trained Two-Tower Model
     max_tfrecord_rows: Optional[int]
         Max number of rows in a single TFRecord file
     """
@@ -43,4 +45,5 @@ class Settings:
     train_data_tfrecord_path: str
     test_data_tfrecord_path: str
     schema_filepath: str
+    trained_model_path: str
     max_tfrecord_rows: Optional[int] = None
