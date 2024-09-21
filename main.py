@@ -42,7 +42,7 @@ schema = Schema(
     ],
     training_config=TrainingConfig(
         train_batch_size=512,
-        test_batch_size=2**15,
+        test_batch_size=2048,
         shuffle_size=1000,
         epochs=5
     ),

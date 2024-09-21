@@ -38,11 +38,14 @@ def modelling_runner(settings: Settings):
         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
         optimizer="adam"
     )
-    candidate_ds = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
     for i in range(schema.training_config.epochs):
         model.save(settings.trained_model_path)
         index = BruteForceIndex(1000, model.user_tower)
-        index.index(candidate_ds)
+        candidate_embeddings = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
+        # DEBUGGING
+        for articles,embeddings in candidate_embeddings.take(1):
+            logger.info(f"id: {articles[0]}, embedding: {embeddings[0]}")
+        index.index(candidate_embeddings)
         metric_calc = IndexRecall(index)
         for batch in test_ds:
             metric_calc(batch, batch["article_id"])
