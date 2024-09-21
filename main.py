@@ -4,14 +4,14 @@ from pkg.schema.schema import Schema
 from pkg.schema.training_config import TrainingConfig
 from pkg.schema.features import Feature, FeatureFamily
 from pkg.utils.settings import Settings
-from pkg.etl.runner import etl_runner
+from pkg.etl.runner import etl_runner, build_schema_runner
 from pkg.tfrecord_writer.runner import tfrecord_writer_runner
 from pkg.modelling.runner import modelling_runner
 
 settings = Settings(
     raw_data_filepath="./data/transactions_train.csv",
-    train_data_size=15000000,
-    test_data_size=2000000,
+    train_data_range=("2019-09-20", "2020-08-20"),
+    test_data_range=("2020-08-21", "2020-09-21"),
     date_col_name="t_dat",
     candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
@@ -53,7 +53,8 @@ schema = Schema(
     )
 )
 
-etl_runner(settings, schema)
+etl_runner(settings)
+build_schema_runner(settings, schema)
 tfrecord_writer_runner(settings)
 modelling_runner(settings)
 

@@ -7,11 +7,12 @@ logger = logging.getLogger(__name__)
 
 """
 ETL steps:
-  1. Create a dataloader from the raw csv, so don't load all data into memory
-  2. Create train/test data, ensuring no leakage
+  1. Load data into memory
+  2. Create train/test data from settings
+  3. Save to disk
 """
 
-def etl_runner(settings: Settings, schema: Schema) -> None:
+def etl_runner(settings: Settings) -> None:
     """
     Given the settings, output train/test data
 
@@ -23,21 +24,35 @@ def etl_runner(settings: Settings, schema: Schema) -> None:
       Schema containing features
     """
     logger.info("--- ETL Starting ---")
-    logger.info(f"Creating iterator from {settings.raw_data_filepath}")
-    data_loader = pd.read_csv(settings.raw_data_filepath, chunksize=100000)
-    train = data_loader.get_chunk(settings.train_data_size)
-    test = data_loader.get_chunk(settings.test_data_size)
-    # Prevent overlapping days so no leakage
-    max_train_day = train[settings.date_col_name].max()
-    logger.info(f"Train data ends on {max_train_day}, removing rows from test...")
-    test = test[test[settings.date_col_name] > max_train_day]
+    logger.info(f"Loading data from {settings.raw_data_filepath}")
+    data = pd.read_csv(settings.raw_data_filepath)
+    logger.info(f"Creating train data from {settings.train_data_range[0]} to {settings.train_data_range[1]}")
+    train = data[(data[settings.date_col_name] >= settings.train_data_range[0]) & (data[settings.date_col_name] <= settings.train_data_range[1])]
+    logger.info(f"Creating test data from {settings.test_data_range[0]} to {settings.test_data_range[1]}")
+    test = data[(data[settings.date_col_name] >= settings.test_data_range[0]) & (data[settings.date_col_name] <= settings.test_data_range[1])]
     # Save the data
-    logger.info(f"Saving train data to {settings.train_data_filepath} with date range {train[settings.date_col_name].min()} to {train[settings.date_col_name].max()}")
+    logger.info(f"Saving train data to {settings.train_data_filepath} with range {train[settings.date_col_name].min()} to {train[settings.date_col_name].max()}")
     train.to_csv(settings.train_data_filepath, index=False)
-    logger.info(f"Saving test data to {settings.test_data_filepath} with date range {test[settings.date_col_name].min()} to {test[settings.date_col_name].max()}")
+    logger.info(f"Saving test data to {settings.test_data_filepath} with range {test[settings.date_col_name].min()} to {test[settings.date_col_name].max()}")
     test.to_csv(settings.test_data_filepath, index=False)
-    # Build and save the schema
+    logger.info("--- ETL Finished! ---")
+  
+
+def build_schema_runner(settings: Settings, schema: Schema) -> None:
+    """
+    Build the schema from the training data
+
+    Parameters
+    ----------
+    settings: Settings
+      Settings for the run
+    schema: Schema
+      Schema containing features
+    """
+    logger.info("--- Build Schema Starting ---")
     logger.info("Building schema from training data")
+    train = pd.read_csv(settings.train_data_filepath)
     schema.build_features_from_dataframe(train)
     schema.save(settings.schema_filepath)
-    logger.info("--- ETL Finished! ---")
+    logger.info("--- Build Schema Finished! ---")
+

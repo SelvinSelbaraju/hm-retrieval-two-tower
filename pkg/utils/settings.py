@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
 @dataclass
 class Settings:
@@ -10,11 +10,12 @@ class Settings:
     ----------
     raw_data_filepath: str
         Filepath to the raw data
-    train_data_size: int
-        Number of rows in train data
-    test_data_size: int
-        Approx number of rows in test data
-        Approx because train/test overlap days removed
+    train_data_range: Tuple[str, str]
+        Start and end date for training data
+        In the format YYYY-MM-DD
+    test_data_range: Tuple[str, str]
+        Start and end date for test data
+        In the format YYYY-MM-DD
     date_col_name: str
         Name of the col with the date/time
         Used to prevent leakage in train/test
@@ -36,8 +37,8 @@ class Settings:
         Max number of rows in a single TFRecord file
     """
     raw_data_filepath: str
-    train_data_size: int
-    test_data_size: int
+    train_data_range: Tuple[str, str]
+    test_data_range: Tuple[str, str]
     date_col_name: str
     candidate_tfrecord_path: str
     train_data_filepath: str
