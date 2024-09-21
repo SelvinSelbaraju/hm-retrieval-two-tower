@@ -31,9 +31,9 @@ def etl_runner(settings: Settings) -> None:
     logger.info(f"Creating test data from {settings.test_data_range[0]} to {settings.test_data_range[1]}")
     test = data[(data[settings.date_col_name] >= settings.test_data_range[0]) & (data[settings.date_col_name] <= settings.test_data_range[1])]
     # Save the data
-    logger.info(f"Saving train data to {settings.train_data_filepath} with range {train[settings.date_col_name].min()} to {train[settings.date_col_name].max()}")
+    logger.info(f"Saving {len(train)} rows train data to {settings.train_data_filepath} with range {train[settings.date_col_name].min()} to {train[settings.date_col_name].max()}")
     train.to_csv(settings.train_data_filepath, index=False)
-    logger.info(f"Saving test data to {settings.test_data_filepath} with range {test[settings.date_col_name].min()} to {test[settings.date_col_name].max()}")
+    logger.info(f"Saving {len(test)} rows test data to {settings.test_data_filepath} with range {test[settings.date_col_name].min()} to {test[settings.date_col_name].max()}")
     test.to_csv(settings.test_data_filepath, index=False)
     logger.info("--- ETL Finished! ---")
   
