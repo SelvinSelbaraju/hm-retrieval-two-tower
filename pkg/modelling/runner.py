@@ -36,19 +36,19 @@ def modelling_runner(settings: Settings):
     model = TwoTowerModel.create_from_schema(schema)
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-        optimizer="adam"
+        optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.05)
     )
     for i in range(schema.training_config.epochs):
         model.save(settings.trained_model_path)
         index = BruteForceIndex(1000, model.user_tower)
-        candidate_embeddings = candidate_ds.map(lambda x: (x["article_id"], model.item_tower(x)))
+        candidate_embeddings = candidate_ds.map(lambda x: (x[settings.candidate_col_name], model.item_tower(x)))
         # DEBUGGING
         for articles,embeddings in candidate_embeddings.take(1):
             logger.info(f"id: {articles[0]}, embedding: {embeddings[0]}")
         index.index(candidate_embeddings)
         metric_calc = IndexRecall(index)
         for batch in test_ds:
-            metric_calc(batch, batch["article_id"])
+            metric_calc(batch, batch[settings.candidate_col_name])
         logger.info(f"Start of epoch {i} recall:{metric_calc.metric.numpy()}")
         model.fit(train_ds, epochs=1)
         model.compile(

@@ -53,6 +53,10 @@ def build_schema_runner(settings: Settings, schema: Schema) -> None:
     logger.info("Building schema from training data")
     train = pd.read_csv(settings.train_data_filepath)
     schema.build_features_from_dataframe(train)
+    logger.info("Calculating candidate probs from training data")
+    probs = train[settings.candidate_col_name].value_counts() / len(train)
+    lookup_dict = {str(probs.index[i]): probs.iloc[i] for i in range(len(probs))}
+    logger.info(f"Finished creating lookup dict with {len(lookup_dict)} candidates")
+    schema.set_candidate_prob_lookup(lookup_dict)
     schema.save(settings.schema_filepath)
     logger.info("--- Build Schema Finished! ---")
-

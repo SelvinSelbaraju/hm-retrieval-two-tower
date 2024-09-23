@@ -19,6 +19,8 @@ class Settings:
     date_col_name: str
         Name of the col with the date/time
         Used to prevent leakage in train/test
+    candidate_col_name: str
+        Name of the col with the candidate identifier
     candidate_tfrecord_path: str
         Filepath to store TFRecords of candidates
     train_data_filepath: str
@@ -40,6 +42,7 @@ class Settings:
     train_data_range: Tuple[str, str]
     test_data_range: Tuple[str, str]
     date_col_name: str
+    candidate_col_name: str
     candidate_tfrecord_path: str
     train_data_filepath: str
     test_data_filepath: str

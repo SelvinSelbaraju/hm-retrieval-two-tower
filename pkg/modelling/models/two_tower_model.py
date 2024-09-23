@@ -22,6 +22,8 @@ class TwoTowerModel(tf.keras.Model):
         Hidden units for the user tower
     item_tower_units: Optional[List[int]]
         Hidden units for the item tower
+    candidate_prob_lookup: Optional[Dict[str, Float]]
+        If provided, will perform logQ correction before passing to loss
     """
     def __init__(
         self,
@@ -29,17 +31,37 @@ class TwoTowerModel(tf.keras.Model):
         item_features: List[Feature],
         joint_embedding_size: int,
         user_tower_units: Optional[List[int]] = None,
-        item_tower_units: Optional[List[int]] = None
+        item_tower_units: Optional[List[int]] = None,
+        candidate_prob_lookup: Optional[Dict[str, float]] = None,
     ):
         super().__init__()
         self.user_tower = Tower(user_features, joint_embedding_size, user_tower_units)
         self.item_tower = Tower(item_features, joint_embedding_size, item_tower_units)
+        # Used to perform the logQ correction
+        if candidate_prob_lookup:
+            self.candidate_prob_lookup = tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    keys=list(candidate_prob_lookup.keys()),
+                    values=list(candidate_prob_lookup.values()),
+                    key_dtype=tf.string,
+                    value_dtype=tf.float32
+                ),
+                default_value=0.0,
+                name="candidate_sampling_probs"
+            )
+        else:
+            self.candidate_prob_lookup = None
     
     def call(self, x: Dict[str, tf.Tensor]) -> tf.Tensor:
         users = self.user_tower(x)
         items = self.item_tower(x)
-        return tf.linalg.matmul(users, items, transpose_b=True)
-
+        scores = tf.linalg.matmul(users, items, transpose_b=True)
+        if self.candidate_prob_lookup:
+            corrections = self.candidate_prob_lookup.lookup(x["article_id"])
+            # Match the shape of the B x B scores tensor
+            corrections = tf.transpose(corrections)
+            scores = scores - tf.math.log(corrections)
+        return scores
 
     def train_step(self, data: Dict[str, tf.Tensor]) -> Dict[str, float]:
         """
@@ -81,7 +103,8 @@ class TwoTowerModel(tf.keras.Model):
             item_features=schema.item_features,
             joint_embedding_size=schema.model_config.joint_embedding_size,
             user_tower_units=schema.model_config.user_tower_units,
-            item_tower_units=schema.model_config.item_tower_units
+            item_tower_units=schema.model_config.item_tower_units,
+            candidate_prob_lookup=schema.training_config.candidate_prob_lookup
         )
 
     def save(self, model_path: str) -> None:

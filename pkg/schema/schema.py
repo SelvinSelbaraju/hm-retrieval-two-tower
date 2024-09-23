@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 import logging
 import os
 import pickle
@@ -61,5 +61,11 @@ class Schema:
         with open(filepath, "rb") as f:
             schema = pickle.load(f)
         return schema
+    
+    def set_candidate_prob_lookup(self, lookup_dict: Dict[str, float]) -> None:
+        logger.info(f"Setting TrainingConfig lookup using dict with {len(lookup_dict)} candidates")
+        self.training_config.candidate_prob_lookup = lookup_dict
+
+
         
 

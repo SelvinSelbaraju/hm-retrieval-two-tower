@@ -13,6 +13,7 @@ settings = Settings(
     train_data_range=("2019-09-20", "2020-08-20"),
     test_data_range=("2020-08-21", "2020-09-21"),
     date_col_name="t_dat",
+    candidate_col_name="article_id",
     candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
     test_data_filepath="./data/test.csv",
@@ -29,21 +30,19 @@ schema = Schema(
             "customer_id",
             tf.string,
             FeatureFamily.USER,
-            embedding_size=64,
-            max_vocab_size=100000,
+            embedding_size=128,
         ),
         Feature(
             "article_id",
             tf.string,
             FeatureFamily.ITEM,
-            embedding_size=64,
-            max_vocab_size=100000
+            embedding_size=128,
         )
     ],
     training_config=TrainingConfig(
         train_batch_size=512,
         test_batch_size=2048,
-        shuffle_size=1000,
+        shuffle_size=100000,
         epochs=5
     ),
     model_config=ModelConfig(
