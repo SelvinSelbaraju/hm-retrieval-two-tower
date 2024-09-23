@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime
 import tensorflow as tf
 from pkg.modelling.tfrecord_dataset import TFRecordDatasetFactory
 from pkg.utils.settings import Settings
@@ -33,12 +34,19 @@ def modelling_runner(settings: Settings):
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.candidate_tfrecord_path),
     )
+    logs = os.path.join(settings.tensorboard_logs_dir,datetime.now().strftime("%Y%m%d-%H%M%S"))
+    tboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logs,
+        histogram_freq=1,
+        profile_batch='20,40'
+    )
+    file_writer = tf.summary.create_file_writer(logs + "/metrics")
+    file_writer.set_as_default()
     model = TwoTowerModel.create_from_schema(schema)
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
         optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.05)
     )
-    for i in range(schema.training_config.epochs):
+    for epoch in range(schema.training_config.epochs):
         model.save(settings.trained_model_path)
         index = BruteForceIndex(1000, model.user_tower)
         candidate_embeddings = candidate_ds.map(lambda x: (x[settings.candidate_col_name], model.item_tower(x)))
@@ -49,7 +57,8 @@ def modelling_runner(settings: Settings):
         metric_calc = IndexRecall(index)
         for batch in test_ds:
             metric_calc(batch, batch[settings.candidate_col_name])
-        logger.info(f"Start of epoch {i} recall:{metric_calc.metric.numpy()}")
-        model.fit(train_ds, epochs=1)
-    logger.info(f"Recall@k: {metric_calc.metric.numpy()}")
+        logger.info(f"Start of epoch {epoch+1} recall:{metric_calc.metric.numpy()}")
+        tf.summary.scalar('Start Recall@1000', data=metric_calc.metric.numpy(), step=epoch+1)
+        model.fit(train_ds, epochs=1, callbacks=[tboard_callback])
+    logger.info(f"End Recall@1000: {metric_calc.metric.numpy()}")
     logger.info("--- Modelling Finishing ---")

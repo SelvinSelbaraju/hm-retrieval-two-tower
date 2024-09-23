@@ -35,6 +35,8 @@ class Settings:
         Filepath to save and read the Schema obj
     trained_model_path: str
         Path to save the trained Two-Tower Model
+    tensorboard_logs_dir: str = "./logs"
+        Path to save Tensorboard logs.
     max_tfrecord_rows: Optional[int]
         Max number of rows in a single TFRecord file
     """
@@ -50,4 +52,5 @@ class Settings:
     test_data_tfrecord_path: str
     schema_filepath: str
     trained_model_path: str
+    tensorboard_logs_dir: str = "./logs"
     max_tfrecord_rows: Optional[int] = None
