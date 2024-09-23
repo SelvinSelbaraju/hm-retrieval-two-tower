@@ -51,9 +51,5 @@ def modelling_runner(settings: Settings):
             metric_calc(batch, batch[settings.candidate_col_name])
         logger.info(f"Start of epoch {i} recall:{metric_calc.metric.numpy()}")
         model.fit(train_ds, epochs=1)
-        model.compile(
-            loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-            optimizer="adam"
-        )
     logger.info(f"Recall@k: {metric_calc.metric.numpy()}")
     logger.info("--- Modelling Finishing ---")

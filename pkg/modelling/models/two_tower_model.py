@@ -55,13 +55,7 @@ class TwoTowerModel(tf.keras.Model):
     def call(self, x: Dict[str, tf.Tensor]) -> tf.Tensor:
         users = self.user_tower(x)
         items = self.item_tower(x)
-        scores = tf.linalg.matmul(users, items, transpose_b=True)
-        if self.candidate_prob_lookup:
-            corrections = self.candidate_prob_lookup.lookup(x["article_id"])
-            # Match the shape of the B x B scores tensor
-            corrections = tf.transpose(corrections)
-            scores = scores - tf.math.log(corrections)
-        return scores
+        return tf.linalg.matmul(users, items, transpose_b=True)
 
     def train_step(self, data: Dict[str, tf.Tensor]) -> Dict[str, float]:
         """
@@ -81,6 +75,12 @@ class TwoTowerModel(tf.keras.Model):
         """
         with tf.GradientTape() as tape:
             y_pred = self(data, training=True)
+            # LogQ Correction
+            if self.candidate_prob_lookup:
+                corrections = self.candidate_prob_lookup.lookup(data["article_id"])
+                # Match the shape of the B x B scores tensor
+                corrections = tf.transpose(corrections)
+                y_pred -= tf.math.log(corrections)
             # B x B tensor
             # Diagonal contains scores for true positives
             labels = tf.eye(tf.shape(y_pred)[0],tf.shape(y_pred)[0], dtype=tf.float32)
