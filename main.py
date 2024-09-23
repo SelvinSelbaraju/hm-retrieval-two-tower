@@ -42,13 +42,15 @@ schema = Schema(
     training_config=TrainingConfig(
         train_batch_size=512,
         test_batch_size=2048,
+        optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.05),
         shuffle_size=100000,
-        epochs=5
+        epochs=5,
     ),
     model_config=ModelConfig(
-        128,
-        [256],
-        [256]
+        joint_embedding_size=128,
+        ks=[10,100,1000],
+        user_tower_units=[256],
+        item_tower_units=[256],
     )
 )
 

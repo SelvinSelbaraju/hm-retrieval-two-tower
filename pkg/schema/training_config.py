@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Dict
+import tensorflow as tf
 
 @dataclass
 class TrainingConfig:
@@ -12,6 +13,8 @@ class TrainingConfig:
         Number of rows in a single batch of train data
     test_batch_size: int
         Number of rows in a single batch of test data
+    optimizer: tf.keras.optimizers.Optimizer
+        Optimizer to use
     shuffle_size: Optional[int] = None
         Shuffle buffer size. If None, don't shuffle
     epochs: int = 1
@@ -21,6 +24,7 @@ class TrainingConfig:
     """
     train_batch_size: int
     test_batch_size: int
+    optimizer: tf.keras.optimizers.Optimizer
     shuffle_size: Optional[int] = None
     epochs: int = 1
     candidate_prob_lookup: Optional[Dict[str, float]] = None

@@ -12,6 +12,7 @@ tensorflow-macos = "^2.16.2"
 pandas = "^2.2.2"
 matplotlib = "^3.9.2"
 seaborn = "^0.13.2"
+tensorboard-plugin-profile = "^2.17.0"
 
 
 [build-system]
