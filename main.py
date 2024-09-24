@@ -17,11 +17,12 @@ settings = Settings(
     candidate_tfrecord_path="./data/tfrecords/candidates/candidates",
     train_data_filepath="./data/train.csv",
     test_data_filepath="./data/test.csv",
-    train_data_tfrecord_path="./data/tfrecords/train/train",
-    test_data_tfrecord_path="./data/tfrecords/test/test",
+    train_data_tfrecord_path="./data/tfrecords/train2/train",
+    test_data_tfrecord_path="./data/tfrecords/test2/test",
     max_tfrecord_rows=100000,
     schema_filepath="./data/schema.pkl",
-    trained_model_path="./model"
+    trained_model_path="./trained_models/model2",
+    index_path="./trained_models/candidate_index"
 )
 
 schema = Schema(

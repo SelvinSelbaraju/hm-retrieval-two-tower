@@ -1,7 +1,9 @@
-from typing import Tuple, Optional, Union, Dict
+from typing import Tuple, Dict
 import tensorflow as tf
+from tensorflow.python.framework.tensor import TensorSpec
+from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
-class BruteForceIndex(tf.keras.Model):
+class BruteForceIndex(AbstractKerasModel):
     """
     Store ids and embeddings for items
     At inference, return the top k ids for the query
@@ -16,13 +18,16 @@ class BruteForceIndex(tf.keras.Model):
     def __init__(
         self,
         k: int,
-        user_model: tf.keras.Model
+        user_model: AbstractKerasModel,
+        id_item_pairs: tf.data.Dataset
     ):
         super().__init__()
         self.k = k
         self.user_model = user_model
+        self._index(id_item_pairs)
+        self.initialise_model()
     
-    def index(self, id_item_pairs: tf.data.Dataset) -> None:
+    def _index(self, id_item_pairs: tf.data.Dataset) -> None:
         """
         Creates a pseudo-model which returns the candidate items for a query
         This model is then used in the call method when passed items
@@ -44,7 +49,7 @@ class BruteForceIndex(tf.keras.Model):
         )
         self._candidates.assign(candidates)
     
-    def call(self, users: Dict[str, tf.Tensor]) -> tf.Tensor:
+    def call(self, users: Dict[str, tf.Tensor], training: bool = False) -> tf.Tensor:
         """
         Return the top k candidates for a set of users
 
@@ -53,8 +58,7 @@ class BruteForceIndex(tf.keras.Model):
         users: tf.Tensor
             Must be a dict of tensors for the user tower
         """
-        if self.user_model:
-            user_embeddings = self.user_model(users)
+        user_embeddings = self.user_model(users)
         scores = tf.linalg.matmul(user_embeddings, self._candidates, transpose_b=True)
         
         # The first output is the actual scores, we don't need those
@@ -82,4 +86,8 @@ class BruteForceIndex(tf.keras.Model):
           axis=0
         )
         return identifiers,candidates
+
+    def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
+        return self.user_model.get_input_signature()
+
     

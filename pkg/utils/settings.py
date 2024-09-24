@@ -35,6 +35,9 @@ class Settings:
         Filepath to save and read the Schema obj
     trained_model_path: str
         Path to save the trained Two-Tower Model
+    index_path: str
+        Path to save an index with candidate embeddings
+        Index contains logic to fetch the top K given a query
     tensorboard_logs_dir: str = "./logs"
         Path to save Tensorboard logs.
     max_tfrecord_rows: Optional[int]
@@ -52,5 +55,6 @@ class Settings:
     test_data_tfrecord_path: str
     schema_filepath: str
     trained_model_path: str
+    index_path: str
     tensorboard_logs_dir: str = "./logs"
     max_tfrecord_rows: Optional[int] = None

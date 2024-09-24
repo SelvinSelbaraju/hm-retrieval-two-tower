@@ -3,7 +3,7 @@ import tensorflow as tf
 from pkg.schema.features import Feature
 from pkg.modelling.layers.input_layer import InputLayer
 
-class Tower(tf.keras.Model):
+class Tower(tf.keras.layers.Layer):
     """
     Tower as a Simple feed forward network for a two tower model
 
@@ -42,3 +42,9 @@ class Tower(tf.keras.Model):
         for layer in self.model_layers:
             output = layer(output)
         return output
+
+    def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
+        input_signature = {}
+        for f in self.features:
+            input_signature[f.name] = tf.TensorSpec(shape=(None,1), dtype=f.dtype, name=f.name)
+        return input_signature

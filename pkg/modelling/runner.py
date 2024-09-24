@@ -31,8 +31,11 @@ def modelling_runner(settings: Settings):
         os.path.dirname(settings.test_data_tfrecord_path),
         batch_size=schema.training_config.test_batch_size,
     )
+    # Split test ds into tuples of user features and the candidate id
+    test_ds = test_ds.map(lambda x: ({f.name: x[f.name] for f in schema.user_features},x[settings.candidate_col_name]))
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.candidate_tfrecord_path),
+        batch_size=100000
     )
     logs = os.path.join(settings.tensorboard_logs_dir,datetime.now().strftime("%Y%m%d-%H%M%S"))
     tboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logs,
@@ -47,14 +50,15 @@ def modelling_runner(settings: Settings):
         optimizer=schema.training_config.optimizer
     )
     for epoch in range(schema.training_config.epochs):
-        model.save(settings.trained_model_path)
-        index = BruteForceIndex(max(schema.model_config.ks), model.user_tower)
-        candidate_embeddings = candidate_ds.map(lambda x: (x[settings.candidate_col_name], model.item_tower(x)))
-        index.index(candidate_embeddings)
+        # Make into 1D for recall calculation
+        candidate_embeddings = candidate_ds.map(lambda x: (tf.reshape(x[settings.candidate_col_name],(-1,)), model.item_tower(x)))
+        index = BruteForceIndex(max(schema.model_config.ks), model.user_tower, candidate_embeddings)
         metric_calc = IndexRecall(index, schema.model_config.ks)
-        for batch in test_ds:
-            metric_calc(batch, batch[settings.candidate_col_name])
+        for user_features,true_candidates in test_ds:
+            metric_calc(user_features, true_candidates)
         metric_calc.log_to_tensorboard(epoch+1)
         model.fit(train_ds, epochs=1, callbacks=[tboard_callback])
+        model.save(settings.trained_model_path)
+        index.save(settings.index_path)
     metric_calc.log_to_tensorboard(schema.training_config.epochs+1)
     logger.info("--- Modelling Finishing ---")

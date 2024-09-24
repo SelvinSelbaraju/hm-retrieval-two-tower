@@ -2,11 +2,13 @@ import os
 from typing import List, Optional, Dict
 import logging
 import tensorflow as tf
+from tensorflow.python.framework.tensor import TensorSpec
 from pkg.modelling.models.tower import Tower
 from pkg.schema.features import Feature
 from pkg.schema.schema import Schema
+from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
-class TwoTowerModel(tf.keras.Model):
+class TwoTowerModel(AbstractKerasModel):
     """
     Two Tower Model class
 
@@ -35,6 +37,8 @@ class TwoTowerModel(tf.keras.Model):
         candidate_prob_lookup: Optional[Dict[str, float]] = None,
     ):
         super().__init__()
+        self.user_features = user_features
+        self.item_features = item_features
         self.user_tower = Tower(user_features, joint_embedding_size, user_tower_units)
         self.item_tower = Tower(item_features, joint_embedding_size, item_tower_units)
         # Used to perform the logQ correction
@@ -51,10 +55,13 @@ class TwoTowerModel(tf.keras.Model):
             )
         else:
             self.candidate_prob_lookup = None
+        self.initialise_model()
     
-    def call(self, x: Dict[str, tf.Tensor]) -> tf.Tensor:
-        users = self.user_tower(x)
-        items = self.item_tower(x)
+    def call(self, x: Dict[str, tf.Tensor], training: bool = True) -> tf.Tensor:
+        user_features = {f.name: x[f.name] for f in self.user_features}
+        item_features = {f.name: x[f.name] for f in self.item_features}
+        users = self.user_tower(user_features)
+        items = self.item_tower(item_features)
         return tf.linalg.matmul(users, items, transpose_b=True)
 
     def train_step(self, data: Dict[str, tf.Tensor]) -> Dict[str, float]:
@@ -106,19 +113,12 @@ class TwoTowerModel(tf.keras.Model):
             item_tower_units=schema.model_config.item_tower_units,
             candidate_prob_lookup=schema.training_config.candidate_prob_lookup
         )
-
-    def save(self, model_path: str) -> None:
-        """
-        Save the model at the path
-        
-        Parameters
-        ----------
-        model_path: str
-            The path to save the model at
-        """
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        logging.info(f"Saving model at path: {model_path}")
-        tf.saved_model.save(self, model_path)
+    
+    def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
+        input_signature = {}
+        for f in (self.item_features + self.user_features):
+            input_signature[f.name] = tf.TensorSpec(shape=(None,1), dtype=f.dtype, name=f.name)
+        return input_signature
 
     
 

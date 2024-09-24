@@ -1,5 +1,5 @@
 # Testing
 *.pyc
 data/
-model/
+trained_models/
 logs/
