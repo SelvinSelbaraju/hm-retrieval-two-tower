@@ -2,64 +2,46 @@ import logging
 import pandas as pd
 from pkg.schema.schema import Schema
 from pkg.utils.settings import Settings
+from pkg.etl.transformations import date_filter, load_dataframe, save_dataframe
 
 logger = logging.getLogger(__name__)
-
-"""
-ETL steps:
-  1. Load data into memory
-  2. Create train/test data from settings
-  3. Save to disk
-"""
 
 
 def etl_runner(settings: Settings) -> None:
     """
     Given the settings, output train/test data
+    ETL steps:
+      1. Load data into memory
+      2. Create train/test data from settings
+      3. Save to disk
 
     Parameters
     ----------
     settings: Settings
       Settings for the run
-    schema: Schema
-      Schema containing features
     """
     logger.info("--- ETL Starting ---")
-    logger.info(f"Loading data from {settings.raw_data_filepath}")
-    data = pd.read_csv(settings.raw_data_filepath)
-    logger.info(
-        "Creating train data from: "
-        f"{settings.train_data_range[0]} "
-        f"to: {settings.train_data_range[1]}"
+    # Load the data
+    transactions = load_dataframe(
+        settings.raw_data_filepath, "raw_transactions"
     )
-    train = data[
-        (data[settings.date_col_name] >= settings.train_data_range[0])
-        & (data[settings.date_col_name] <= settings.train_data_range[1])
-    ]
-    logger.info(
-        "Creating test data from: "
-        f"{settings.test_data_range[0]} "
-        f"to: {settings.test_data_range[1]}"
+    # Create train/test
+    train = date_filter(
+        transactions,
+        "train",
+        settings.date_col_name,
+        settings.train_data_range,
     )
-    test = data[
-        (data[settings.date_col_name] >= settings.test_data_range[0])
-        & (data[settings.date_col_name] <= settings.test_data_range[1])
-    ]
+    test = date_filter(
+        transactions, "test", settings.date_col_name, settings.test_data_range
+    )
     # Save the data
-    logger.info(
-        f"Saving {len(train)} rows train data to: "
-        f"{settings.train_data_filepath}. Date range: "
-        f"{train[settings.date_col_name].min()} to: "
-        f"{train[settings.date_col_name].max()}"
+    save_dataframe(
+        train, "train", settings.date_col_name, settings.train_data_filepath
     )
-    train.to_csv(settings.train_data_filepath, index=False)
-    logger.info(
-        f"Saving {len(test)} rows test data to: "
-        f"{settings.test_data_filepath}. Date range: "
-        f"{test[settings.date_col_name].min()} to: "
-        f"{test[settings.date_col_name].max()}"
+    save_dataframe(
+        test, "test", settings.date_col_name, settings.test_data_filepath
     )
-    test.to_csv(settings.test_data_filepath, index=False)
     logger.info("--- ETL Finished! ---")
 
 
