@@ -16,6 +16,9 @@ class Settings:
     test_data_range: Tuple[str, str]
         Start and end date for test data
         In the format YYYY-MM-DD
+    baseline_model_date_range: Tuple[str, str]
+        Start and end date for baseline model
+        In the format YYYY-MM-DD
     date_col_name: str
         Name of the col with the date/time
         Used to prevent leakage in train/test
@@ -46,6 +49,7 @@ class Settings:
     raw_data_filepath: str
     train_data_range: Tuple[str, str]
     test_data_range: Tuple[str, str]
+    baseline_model_date_range: Tuple[str, str]
     date_col_name: str
     candidate_col_name: str
     candidate_tfrecord_path: str
@@ -56,5 +60,6 @@ class Settings:
     schema_filepath: str
     trained_model_path: str
     index_path: str
+    baseline_index_path: str
     tensorboard_logs_dir: str = "./logs"
     max_tfrecord_rows: Optional[int] = None
