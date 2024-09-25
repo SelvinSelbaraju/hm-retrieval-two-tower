@@ -22,7 +22,7 @@ settings = Settings(
     test_data_tfrecord_path="./data/tfrecords/test/test",
     max_tfrecord_rows=100000,
     schema_filepath="./data/schema.pkl",
-    trained_model_path="./trained_models/model",
+    trained_model_path="./trained_models/model/",
     index_path="./trained_models/candidate_index",
     baseline_index_path="./trained_models/baseline_index"
 )

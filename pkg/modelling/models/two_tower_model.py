@@ -120,5 +120,28 @@ class TwoTowerModel(AbstractKerasModel):
             input_signature[f.name] = tf.TensorSpec(shape=(None,1), dtype=f.dtype, name=f.name)
         return input_signature
 
+    def save(self, model_path: str) -> None:
+        """
+        Create a directory at the model_path
+        Save the two_tower model, and each of the towers separately
+        
+        Parameters
+        ----------
+        model_path: str
+            The path to save the model at
+        """
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        two_tower_model_path = os.path.join(os.path.dirname(model_path), "two_tower")
+        query_tower_model_path = os.path.join(os.path.dirname(model_path), "query_tower")
+        candidate_tower_model_path = os.path.join(os.path.dirname(model_path), "candidate_tower")
+        logging.info(f"Saving two tower model at path: {two_tower_model_path}")
+        tf.saved_model.save(self, two_tower_model_path)
+        logging.info(f"Saving query tower model at path: {query_tower_model_path}")
+        tf.saved_model.save(self.user_tower, query_tower_model_path)
+        logging.info(f"Saving candidate tower model at path: {candidate_tower_model_path}")
+        tf.saved_model.save(self.item_tower, candidate_tower_model_path)
+
+    
+
     
 

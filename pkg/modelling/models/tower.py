@@ -2,8 +2,9 @@ from typing import Optional, List, Dict
 import tensorflow as tf
 from pkg.schema.features import Feature
 from pkg.modelling.layers.input_layer import InputLayer
+from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
-class Tower(tf.keras.layers.Layer):
+class Tower(AbstractKerasModel):
     """
     Tower as a Simple feed forward network for a two tower model
 
@@ -27,6 +28,7 @@ class Tower(tf.keras.layers.Layer):
         self.joint_embedding_size = joint_embedding_size
         self.hidden_units = hidden_units
         self._init_layers()
+        self.initialise_model()
     
 
     def _init_layers(self) -> None:
