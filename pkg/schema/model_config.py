@@ -10,14 +10,14 @@ class ModelConfig:
     ----------
     joint_embedding_size: int
         Joint embedding size which gets dot product
-    user_tower_units: List[int]
-        Hidden units for the user tower
-    item_tower_units: List[int]
-        Hidden units for the item tower
+    query_tower_units: List[int]
+        Hidden units for the query tower
+    candidate_tower_units: List[int]
+        Hidden units for the candidate tower
     ks: List[int]
         The Recall@k metrics we want to evaluate
     """
     joint_embedding_size: int
     ks: List[int]
-    user_tower_units: Optional[List[int]] = None
-    item_tower_units: Optional[List[int]] = None
+    query_tower_units: Optional[List[int]] = None
+    candidate_tower_units: Optional[List[int]] = None

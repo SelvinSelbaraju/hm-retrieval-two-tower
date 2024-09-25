@@ -22,8 +22,8 @@ class Schema:
     """
     def __init__(self, features: List[Feature], training_config: TrainingConfig, model_config: ModelConfig):
         self.features = features
-        self.item_features = [f for f in features if f.feature_family == FeatureFamily.ITEM]
-        self.user_features = [f for f in features if f.feature_family == FeatureFamily.USER]
+        self.candidate_features = [f for f in features if f.feature_family == FeatureFamily.CANDIDATE]
+        self.query_features = [f for f in features if f.feature_family == FeatureFamily.QUERY]
         self.training_config = training_config
         self.model_config = model_config
     

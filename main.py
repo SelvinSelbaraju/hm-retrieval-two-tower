@@ -32,13 +32,13 @@ schema = Schema(
         Feature(
             "customer_id",
             tf.string,
-            FeatureFamily.USER,
+            FeatureFamily.QUERY,
             embedding_size=128,
         ),
         Feature(
             "article_id",
             tf.string,
-            FeatureFamily.ITEM,
+            FeatureFamily.CANDIDATE,
             embedding_size=128,
         )
     ],
@@ -52,8 +52,8 @@ schema = Schema(
     model_config=ModelConfig(
         joint_embedding_size=128,
         ks=[10,100,1000],
-        user_tower_units=[256],
-        item_tower_units=[256],
+        query_tower_units=[256],
+        candidate_tower_units=[256],
     )
 )
 

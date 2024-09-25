@@ -43,8 +43,8 @@ class StaticIndex(AbstractKerasModel):
     @classmethod
     def build_popularity_index_from_series_schema(cls, schema: Schema, s: pd.Series) -> "StaticIndex":
         """
-        Given the item id col from a df of transactions
-        Build the index based on item popularity
+        Given the candidate id col from a df of transactions
+        Build the index based on candidate popularity
 
         Parameters
         ----------
@@ -57,7 +57,7 @@ class StaticIndex(AbstractKerasModel):
         ids_tensor = tf.constant([str(id) for id in ids], dtype=tf.string, shape=(1,len(ids)))
         return cls(
             k=max(schema.model_config.ks),
-            input_features=schema.user_features,
+            input_features=schema.query_features,
             candidates=ids_tensor
         )
 

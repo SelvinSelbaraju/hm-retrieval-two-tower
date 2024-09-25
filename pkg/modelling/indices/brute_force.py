@@ -5,39 +5,39 @@ from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
 class BruteForceIndex(AbstractKerasModel):
     """
-    Store ids and embeddings for items
+    Store ids and embeddings for candidates
     At inference, return the top k ids for the query
 
     Parameters
     ----------
-    item_model: Optional[tf.keras.Model]
-        Optional model for embedding items
+    candidate_model: Optional[tf.keras.Model]
+        Optional model for embedding candidates
     k: int
         The number of results the index should return
     """
     def __init__(
         self,
         k: int,
-        user_model: AbstractKerasModel,
-        id_item_pairs: tf.data.Dataset
+        query_model: AbstractKerasModel,
+        id_candidate_pairs: tf.data.Dataset
     ):
         super().__init__()
         self.k = k
-        self.user_model = user_model
-        self._index(id_item_pairs)
+        self.query_model = query_model
+        self._index(id_candidate_pairs)
         self.initialise_model()
     
-    def _index(self, id_item_pairs: tf.data.Dataset) -> None:
+    def _index(self, id_candidate_pairs: tf.data.Dataset) -> None:
         """
-        Creates a pseudo-model which returns the candidate items for a query
-        This model is then used in the call method when passed items
+        Creates a pseudo-model which returns the candidate candidates for a query
+        This model is then used in the call method when passed candidates
         
         Parameters
         ----------
-        id_item_pairs: tf.data.Dataset
-            TF Dataset which yields tuples of (id,item_embedding)
+        id_candidate_pairs: tf.data.Dataset
+            TF Dataset which yields tuples of (id,candidate_embedding)
         """
-        identifiers, candidates = self.get_id_embeddings_from_dataset(id_item_pairs)
+        identifiers, candidates = self.get_id_embeddings_from_dataset(id_candidate_pairs)
         # Since ids are strings, we can't use self.add_weight
         self._identifiers = identifiers
         self._candidates = self.add_weight(
@@ -49,17 +49,17 @@ class BruteForceIndex(AbstractKerasModel):
         )
         self._candidates.assign(candidates)
     
-    def call(self, users: Dict[str, tf.Tensor], training: bool = False) -> tf.Tensor:
+    def call(self, queries: Dict[str, tf.Tensor], training: bool = False) -> tf.Tensor:
         """
-        Return the top k candidates for a set of users
+        Return the top k candidates for a set of queries
 
         Parameters
         ----------
-        users: tf.Tensor
-            Must be a dict of tensors for the user tower
+        queries: tf.Tensor
+            Must be a dict of tensors for the query tower
         """
-        user_embeddings = self.user_model(users)
-        scores = tf.linalg.matmul(user_embeddings, self._candidates, transpose_b=True)
+        query_embeddings = self.query_model(queries)
+        scores = tf.linalg.matmul(query_embeddings, self._candidates, transpose_b=True)
         
         # The first output is the actual scores, we don't need those
         _, indices = tf.math.top_k(scores, k=self.k)
@@ -88,6 +88,6 @@ class BruteForceIndex(AbstractKerasModel):
         return identifiers,candidates
 
     def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
-        return self.user_model.get_input_signature()
+        return self.query_model.get_input_signature()
 
     

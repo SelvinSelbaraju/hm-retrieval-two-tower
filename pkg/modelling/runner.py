@@ -23,7 +23,7 @@ def modelling_runner(settings: Settings):
     logger.info("--- Modelling Starting ---")
     schema = Schema.load_from_filepath(settings.schema_filepath)
     ds_factory = TFRecordDatasetFactory(schema.features)
-    candidate_ds_factory = TFRecordDatasetFactory(schema.item_features)
+    candidate_ds_factory = TFRecordDatasetFactory(schema.candidate_features)
     train_ds = ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.train_data_tfrecord_path),
         schema.training_config.train_batch_size,
@@ -33,8 +33,8 @@ def modelling_runner(settings: Settings):
         os.path.dirname(settings.test_data_tfrecord_path),
         batch_size=schema.training_config.test_batch_size,
     )
-    # Split test ds into tuples of user features and the candidate id
-    test_ds = test_ds.map(lambda x: ({f.name: x[f.name] for f in schema.user_features},x[settings.candidate_col_name]))
+    # Split test ds into tuples of query features and the candidate id
+    test_ds = test_ds.map(lambda x: ({f.name: x[f.name] for f in schema.query_features},x[settings.candidate_col_name]))
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
         os.path.dirname(settings.candidate_tfrecord_path),
         batch_size=100000
@@ -53,11 +53,11 @@ def modelling_runner(settings: Settings):
     )
     for epoch in range(schema.training_config.epochs):
         # Make into 1D for recall calculation
-        candidate_embeddings = candidate_ds.map(lambda x: (tf.reshape(x[settings.candidate_col_name],(-1,)), model.item_tower(x)))
-        index = BruteForceIndex(max(schema.model_config.ks), model.user_tower, candidate_embeddings)
+        candidate_embeddings = candidate_ds.map(lambda x: (tf.reshape(x[settings.candidate_col_name],(-1,)), model.candidate_tower(x)))
+        index = BruteForceIndex(max(schema.model_config.ks), model.query_tower, candidate_embeddings)
         metric_calc = IndexRecall(index, schema.model_config.ks)
-        for user_features,true_candidates in test_ds:
-            metric_calc(user_features, true_candidates)
+        for query_features,true_candidates in test_ds:
+            metric_calc(query_features, true_candidates)
         metric_calc.log_metric(epoch+1)
         model.fit(train_ds, epochs=1, callbacks=[tboard_callback])
         model.save(settings.trained_model_path)
@@ -86,12 +86,12 @@ def baseline_modelling_runner(settings: Settings):
         os.path.dirname(settings.test_data_tfrecord_path),
         batch_size=schema.training_config.test_batch_size,
     )
-    # Split test ds into tuples of user features and the candidate id
-    test_ds = test_ds.map(lambda x: ({f.name: x[f.name] for f in schema.user_features},x[settings.candidate_col_name]))
+    # Split test ds into tuples of query features and the candidate id
+    test_ds = test_ds.map(lambda x: ({f.name: x[f.name] for f in schema.query_features},x[settings.candidate_col_name]))
     index = StaticIndex.build_popularity_index_from_series_schema(schema, candidates)
     metric_calc = IndexRecall(index, schema.model_config.ks)
-    for user_features,true_candidates in test_ds:
-        metric_calc(user_features, true_candidates)
+    for query_features,true_candidates in test_ds:
+        metric_calc(query_features, true_candidates)
     metric_calc.log_metric(None, to_tensorboard=False)
     index.save(settings.baseline_index_path)
     logger.info("--- Baseline Modelling Finishing ---")

@@ -14,33 +14,33 @@ class TwoTowerModel(AbstractKerasModel):
 
     Parameters
     ----------
-    user_features: List[str]
-        Features for the user tower
-    item_features: List[str]
-        Features for the item tower
+    query_features: List[str]
+        Features for the query tower
+    candidate_features: List[str]
+        Features for the candidate tower
     joint_embedding_size: int
         Joint embedding size which gets dot product
-    user_tower_units: Optional[List[int]]
-        Hidden units for the user tower
-    item_tower_units: Optional[List[int]]
-        Hidden units for the item tower
+    query_tower_units: Optional[List[int]]
+        Hidden units for the query tower
+    candidate_tower_units: Optional[List[int]]
+        Hidden units for the candidate tower
     candidate_prob_lookup: Optional[Dict[str, Float]]
         If provided, will perform logQ correction before passing to loss
     """
     def __init__(
         self,
-        user_features: List[Feature],
-        item_features: List[Feature],
+        query_features: List[Feature],
+        candidate_features: List[Feature],
         joint_embedding_size: int,
-        user_tower_units: Optional[List[int]] = None,
-        item_tower_units: Optional[List[int]] = None,
+        query_tower_units: Optional[List[int]] = None,
+        candidate_tower_units: Optional[List[int]] = None,
         candidate_prob_lookup: Optional[Dict[str, float]] = None,
     ):
         super().__init__()
-        self.user_features = user_features
-        self.item_features = item_features
-        self.user_tower = Tower(user_features, joint_embedding_size, user_tower_units)
-        self.item_tower = Tower(item_features, joint_embedding_size, item_tower_units)
+        self.query_features = query_features
+        self.candidate_features = candidate_features
+        self.query_tower = Tower(query_features, joint_embedding_size, query_tower_units)
+        self.candidate_tower = Tower(candidate_features, joint_embedding_size, candidate_tower_units)
         # Used to perform the logQ correction
         if candidate_prob_lookup:
             self.candidate_prob_lookup = tf.lookup.StaticHashTable(
@@ -58,11 +58,11 @@ class TwoTowerModel(AbstractKerasModel):
         self.initialise_model()
     
     def call(self, x: Dict[str, tf.Tensor], training: bool = True) -> tf.Tensor:
-        user_features = {f.name: x[f.name] for f in self.user_features}
-        item_features = {f.name: x[f.name] for f in self.item_features}
-        users = self.user_tower(user_features)
-        items = self.item_tower(item_features)
-        return tf.linalg.matmul(users, items, transpose_b=True)
+        query_features = {f.name: x[f.name] for f in self.query_features}
+        candidate_features = {f.name: x[f.name] for f in self.candidate_features}
+        queries = self.query_tower(query_features)
+        candidates = self.candidate_tower(candidate_features)
+        return tf.linalg.matmul(queries, candidates, transpose_b=True)
 
     def train_step(self, data: Dict[str, tf.Tensor]) -> Dict[str, float]:
         """
@@ -106,17 +106,17 @@ class TwoTowerModel(AbstractKerasModel):
     @classmethod
     def create_from_schema(cls, schema: Schema) -> "TwoTowerModel":
         return TwoTowerModel(
-            user_features=schema.user_features,
-            item_features=schema.item_features,
+            query_features=schema.query_features,
+            candidate_features=schema.candidate_features,
             joint_embedding_size=schema.model_config.joint_embedding_size,
-            user_tower_units=schema.model_config.user_tower_units,
-            item_tower_units=schema.model_config.item_tower_units,
+            query_tower_units=schema.model_config.query_tower_units,
+            candidate_tower_units=schema.model_config.candidate_tower_units,
             candidate_prob_lookup=schema.training_config.candidate_prob_lookup
         )
     
     def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
         input_signature = {}
-        for f in (self.item_features + self.user_features):
+        for f in (self.candidate_features + self.query_features):
             input_signature[f.name] = tf.TensorSpec(shape=(None,1), dtype=f.dtype, name=f.name)
         return input_signature
 
@@ -137,9 +137,9 @@ class TwoTowerModel(AbstractKerasModel):
         logging.info(f"Saving two tower model at path: {two_tower_model_path}")
         tf.saved_model.save(self, two_tower_model_path)
         logging.info(f"Saving query tower model at path: {query_tower_model_path}")
-        tf.saved_model.save(self.user_tower, query_tower_model_path)
+        tf.saved_model.save(self.query_tower, query_tower_model_path)
         logging.info(f"Saving candidate tower model at path: {candidate_tower_model_path}")
-        tf.saved_model.save(self.item_tower, candidate_tower_model_path)
+        tf.saved_model.save(self.candidate_tower, candidate_tower_model_path)
 
     
 

@@ -6,10 +6,10 @@ import tensorflow as tf
 class FeatureFamily(Enum):
     """
     The families which features can be part of
-    Features can either be user features or item features
+    Features can either be query features or candidate features
     """
-    USER = "user"
-    ITEM = "item"
+    QUERY = "query"
+    CANDIDATE = "candidate"
 
 # For now, Feature has a name, vocabulary, data type
 class Feature:
