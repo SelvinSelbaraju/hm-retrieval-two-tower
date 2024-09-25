@@ -3,13 +3,16 @@ from enum import Enum
 import pandas as pd
 import tensorflow as tf
 
+
 class FeatureFamily(Enum):
     """
     The families which features can be part of
     Features can either be query features or candidate features
     """
+
     QUERY = "query"
     CANDIDATE = "candidate"
+
 
 # For now, Feature has a name, vocabulary, data type
 class Feature:
@@ -33,7 +36,9 @@ class Feature:
         Max size of vocab, useful for limiting the size
         Ignored if the vocab is provided up front
     """
+
     VALID_DTYPES = [tf.string, tf.float32]
+
     def __init__(
         self,
         name: str,
@@ -45,31 +50,39 @@ class Feature:
     ):
         self.name = name
         if dtype not in self.VALID_DTYPES:
-            raise TypeError(f"dtype must be one of {self.VALID_DTYPES}, got {dtype}")
+            raise TypeError(
+                f"dtype must be one of {self.VALID_DTYPES}, got {dtype}"
+            )
         self.dtype = dtype
 
         if feature_family not in FeatureFamily:
-            raise ValueError(f"feature family {feature_family} not valid. Must be one of {FeatureFamily._member_names_}")
+            raise ValueError(
+                f"feature family {feature_family} not valid. "
+                f"Must be one of {FeatureFamily._member_names_}"
+            )
         self.feature_family = feature_family
 
         if embedding_size:
             if dtype != tf.string:
-                raise TypeError(f"Got embedding size, dtype must be tf.string got {dtype}")
+                raise TypeError(
+                    f"Got embedding size, dtype must be tf.string got {dtype}"
+                )
         self.embedding_size = embedding_size
-        
+
         if vocab:
             self.vocab = set(vocab)
             self.is_built = True
         else:
             self.vocab = vocab
             self.is_built = False
-        
+
         if max_vocab_size:
             if not isinstance(max_vocab_size, int):
-                raise TypeError(f"max_vocab_size must be an int, got {max_vocab_size}")
+                raise TypeError(
+                    f"max_vocab_size must be an int, got {max_vocab_size}"
+                )
         self.max_vocab_size = max_vocab_size
-        
-    
+
     def set_vocab_from_dataframe(self, df: pd.DataFrame) -> None:
         """
         Set the vocabulary from a Pandas Dataframe
@@ -80,14 +93,14 @@ class Feature:
             Dataframe containing data to build the vocab from
         """
         if self.name not in df.columns:
-            raise ValueError(f"Feature name {self.name} not found in df cols {df.columns}")
+            raise ValueError(
+                f"Feature name {self.name} not found in df cols {df.columns}"
+            )
         v_counts = df[self.name].value_counts()
         if self.max_vocab_size:
             self.vocab = list(v_counts.head(self.max_vocab_size).index)
         else:
             self.vocab = list(v_counts.index)
-        # The vocab must all be strings
+        # The vocab must all be strings
         self.vocab = [str(x) for x in self.vocab]
         self.is_built = True
-
-

@@ -6,18 +6,21 @@ import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 
+
 class AbstractKerasModel(ABC, tf.keras.Model):
     def __init__(self):
         super().__init__()
-    
+
     @abstractmethod
     def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
         """
         Given instance attributes, return the input signature
         Different for every model
         """
-    
-    def set_input_signature(self, input_signature: Dict[str, tf.TensorSpec]) -> None:
+
+    def set_input_signature(
+        self, input_signature: Dict[str, tf.TensorSpec]
+    ) -> None:
         """
         Set what the inputs to the call function should be
         This is needed so the call method is saved
@@ -28,24 +31,24 @@ class AbstractKerasModel(ABC, tf.keras.Model):
             A map of inputs to tf.Tensorspec objs
         """
         self.__call__ = tf.function(
-            self.call,
-            input_signature=[{**input_signature}]
+            self.call, input_signature=[{**input_signature}]
         )
-    
-    
+
     @staticmethod
     def _get_default_tensor(dtype: tf.dtypes.DType) -> None:
         """
         For each dtype, say what to use as the default tensor
         """
         if dtype == tf.string:
-            return tf.constant([b"a"], shape=(1,1), dtype=tf.string)
+            return tf.constant([b"a"], shape=(1, 1), dtype=tf.string)
         elif dtype == tf.float32:
-            return tf.constant([0.0], shape=(1,1), dtype=tf.float32)
+            return tf.constant([0.0], shape=(1, 1), dtype=tf.float32)
         else:
             raise TypeError(f"Invalid dtype {dtype}")
-    
-    def get_default_inputs(self, input_signature: Dict[str, tf.TensorSpec]) -> Dict[str, tf.Tensor]:
+
+    def get_default_inputs(
+        self, input_signature: Dict[str, tf.TensorSpec]
+    ) -> Dict[str, tf.Tensor]:
         """
         Create default inputs to build the model
 
@@ -59,12 +62,14 @@ class AbstractKerasModel(ABC, tf.keras.Model):
         Dict[str, tf.Tensor] of inputs to tensors
         """
         inputs = {}
-        for f,spec in input_signature.items():
+        for f, spec in input_signature.items():
             inputs[f] = self._get_default_tensor(spec.dtype)
         return inputs
 
     @abstractmethod
-    def call(self, x: Dict[str, tf.Tensor], training: bool = True) -> tf.Tensor:
+    def call(
+        self, x: Dict[str, tf.Tensor], training: bool = True
+    ) -> tf.Tensor:
         """
         Pass data through the model
         """
@@ -83,7 +88,7 @@ class AbstractKerasModel(ABC, tf.keras.Model):
     def save(self, model_path: str) -> None:
         """
         Save the model at the path
-        
+
         Parameters
         ----------
         model_path: str

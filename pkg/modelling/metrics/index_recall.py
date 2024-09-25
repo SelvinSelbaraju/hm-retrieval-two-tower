@@ -5,6 +5,7 @@ from pkg.modelling.indices.brute_force import BruteForceIndex
 
 logger = logging.getLogger(__name__)
 
+
 class IndexRecall:
     """
     Given an index, calculate a recall metric
@@ -16,6 +17,7 @@ class IndexRecall:
     ks: List[int]
         The top ks to calculate recall at
     """
+
     def __init__(
         self,
         index: BruteForceIndex,
@@ -28,11 +30,12 @@ class IndexRecall:
             index.k = max(ks)
         self.max_k = max(ks)
         self.hits = {k: tf.constant(0, dtype=tf.int32) for k in ks}
-        self.seen =  tf.constant(0, dtype=tf.int32)
+        self.seen = tf.constant(0, dtype=tf.int32)
         self.metric = {k: tf.constant(0, dtype=tf.int32) for k in ks}
-    
 
-    def __call__(self, queries: Dict[str,tf.Tensor], true_candidate_ids: tf.Tensor) -> float:
+    def __call__(
+        self, queries: Dict[str, tf.Tensor], true_candidate_ids: tf.Tensor
+    ) -> float:
         """
         Given queries and the true candidate ids, return the recall
 
@@ -45,22 +48,25 @@ class IndexRecall:
             Shape should be [num_queries,1]
         """
         candidates = self.index(queries)
-        self.seen += true_candidate_ids.shape[0] 
+        self.seen += true_candidate_ids.shape[0]
         for k in self.ks:
-            recall = tf.math.equal(true_candidate_ids, candidates[:,:k])
+            recall = tf.math.equal(true_candidate_ids, candidates[:, :k])
             recall = tf.reduce_sum(tf.cast(recall, tf.int32))
             self.hits[k] += recall
             self.metric[k] = self.hits[k] / self.seen
         return self.metric
-
 
     def log_metric(self, epoch: int, to_tensorboard: bool = True) -> None:
         """
         Log all of the k values to Tensorboard
         """
         for k in self.ks:
-            logger.info(f"Start of epoch {epoch} recall@{k}: {self.metric[k].numpy()}")
+            logger.info(
+                f"Start of epoch {epoch} recall@{k}: {self.metric[k].numpy()}"
+            )
             if to_tensorboard:
-                tf.summary.scalar(f"Epoch Start Recall@{k}", data=self.metric[k].numpy(), step=epoch)
-
-    
+                tf.summary.scalar(
+                    f"Epoch Start Recall@{k}",
+                    data=self.metric[k].numpy(),
+                    step=epoch,
+                )

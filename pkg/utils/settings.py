@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+
 @dataclass
 class Settings:
     """
@@ -46,6 +47,7 @@ class Settings:
     max_tfrecord_rows: Optional[int]
         Max number of rows in a single TFRecord file
     """
+
     raw_data_filepath: str
     train_data_range: Tuple[str, str]
     test_data_range: Tuple[str, str]

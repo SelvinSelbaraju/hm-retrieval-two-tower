@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+
 @dataclass
 class ModelConfig:
     """
@@ -17,6 +18,7 @@ class ModelConfig:
     ks: List[int]
         The Recall@k metrics we want to evaluate
     """
+
     joint_embedding_size: int
     ks: List[int]
     query_tower_units: Optional[List[int]] = None

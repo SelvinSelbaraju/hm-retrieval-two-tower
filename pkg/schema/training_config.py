@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict
 import tensorflow as tf
 
+
 @dataclass
 class TrainingConfig:
     """
@@ -22,6 +23,7 @@ class TrainingConfig:
     candidate_prob_lookup: Optional[Dict[str, Float]]
         Optional lookup for logQ Correction
     """
+
     train_batch_size: int
     test_batch_size: int
     optimizer: tf.keras.optimizers.Optimizer

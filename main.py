@@ -24,7 +24,7 @@ settings = Settings(
     schema_filepath="./data/schema.pkl",
     trained_model_path="./trained_models/model/",
     index_path="./trained_models/candidate_index",
-    baseline_index_path="./trained_models/baseline_index"
+    baseline_index_path="./trained_models/baseline_index",
 )
 
 schema = Schema(
@@ -40,7 +40,7 @@ schema = Schema(
             tf.string,
             FeatureFamily.CANDIDATE,
             embedding_size=128,
-        )
+        ),
     ],
     training_config=TrainingConfig(
         train_batch_size=512,
@@ -51,10 +51,10 @@ schema = Schema(
     ),
     model_config=ModelConfig(
         joint_embedding_size=128,
-        ks=[10,100,1000],
+        ks=[10, 100, 1000],
         query_tower_units=[256],
         candidate_tower_units=[256],
-    )
+    ),
 )
 
 etl_runner(settings)
@@ -62,4 +62,3 @@ build_schema_runner(settings, schema)
 tfrecord_writer_runner(settings)
 modelling_runner(settings)
 baseline_modelling_runner(settings)
-
