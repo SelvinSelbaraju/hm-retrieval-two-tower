@@ -29,7 +29,7 @@ def etl_runner(settings: Settings) -> None:
     data = pd.read_csv(settings.raw_data_filepath)
     logger.info(
         "Creating train data from: "
-        f"{settings.train_data_range[0]}"
+        f"{settings.train_data_range[0]} "
         f"to: {settings.train_data_range[1]}"
     )
     train = data[
@@ -38,7 +38,7 @@ def etl_runner(settings: Settings) -> None:
     ]
     logger.info(
         "Creating test data from: "
-        f"{settings.test_data_range[0]}"
+        f"{settings.test_data_range[0]} "
         f"to: {settings.test_data_range[1]}"
     )
     test = data[

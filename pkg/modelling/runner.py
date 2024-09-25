@@ -43,7 +43,8 @@ def modelling_runner(settings: Settings):
         )
     )
     candidate_ds = candidate_ds_factory.create_tfrecord_dataset(
-        os.path.dirname(settings.candidate_tfrecord_path), batch_size=100000
+        os.path.dirname(settings.candidate_tfrecord_path),
+        batch_size=schema.training_config.candidate_batch_size,
     )
     logs = os.path.join(
         settings.tensorboard_logs_dir, datetime.now().strftime("%Y%m%d-%H%M%S")
