@@ -54,12 +54,13 @@ class IndexRecall:
         return self.metric
 
 
-    def log_to_tensorboard(self, epoch: int) -> None:
+    def log_metric(self, epoch: int, to_tensorboard: bool = True) -> None:
         """
         Log all of the k values to Tensorboard
         """
         for k in self.ks:
             logger.info(f"Start of epoch {epoch} recall@{k}: {self.metric[k].numpy()}")
-            tf.summary.scalar(f"Epoch Start Recall@{k}", data=self.metric[k].numpy(), step=epoch)
+            if to_tensorboard:
+                tf.summary.scalar(f"Epoch Start Recall@{k}", data=self.metric[k].numpy(), step=epoch)
 
     

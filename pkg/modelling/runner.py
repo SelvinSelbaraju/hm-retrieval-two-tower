@@ -58,11 +58,11 @@ def modelling_runner(settings: Settings):
         metric_calc = IndexRecall(index, schema.model_config.ks)
         for user_features,true_candidates in test_ds:
             metric_calc(user_features, true_candidates)
-        metric_calc.log_to_tensorboard(epoch+1)
+        metric_calc.log_metric(epoch+1)
         model.fit(train_ds, epochs=1, callbacks=[tboard_callback])
         model.save(settings.trained_model_path)
         index.save(settings.index_path)
-    metric_calc.log_to_tensorboard(schema.training_config.epochs+1)
+    metric_calc.log_metric(schema.training_config.epochs+1)
     logger.info("--- Modelling Finishing ---")
 
 
@@ -92,6 +92,6 @@ def baseline_modelling_runner(settings: Settings):
     metric_calc = IndexRecall(index, schema.model_config.ks)
     for user_features,true_candidates in test_ds:
         metric_calc(user_features, true_candidates)
-    metric_calc.log_to_tensorboard(None)
+    metric_calc.log_metric(None, to_tensorboard=False)
     index.save(settings.baseline_index_path)
     logger.info("--- Baseline Modelling Finishing ---")
