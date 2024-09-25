@@ -1,0 +1,38 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: trailing-whitespace
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: check-executables-have-shebangs
+  - id: check-shebang-scripts-are-executable
+
+- repo: https://github.com/psf/black
+  rev: 24.8.0
+  hooks:
+  - id: black
+    language_version: python3.10
+    args: ["--line-length=79"]
+
+- repo: https://github.com/PyCQA/flake8
+  rev: 7.1.1
+  hooks:
+  - id: flake8
+
+- repo: https://github.com/executablebooks/mdformat
+  rev: 0.7.17
+  hooks:
+  - id: mdformat
+    additional_dependencies:
+      - mdformat-gfm
+      - mdformat-tables
+      - mdformat-black
+      - mdformat-beautysh
+      - mdformat-config
+
+- repo: https://github.com/python-poetry/poetry
+  rev: 1.8.0
+  hooks:
+    - id: poetry-check
+    - id: poetry-lock
