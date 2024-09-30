@@ -59,7 +59,7 @@ def modelling_runner(settings: Settings):
     model = TwoTowerModel.create_from_schema(schema)
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-        optimizer=schema.training_config.optimizer,
+        optimizer=tf.keras.optimizers.legacy.Adagrad(learning_rate=0.05),
     )
     for epoch in range(schema.training_config.epochs):
         # Make into 1D for recall calculation

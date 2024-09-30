@@ -1,6 +1,7 @@
 from typing import Optional, List
 from enum import Enum
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 
 
@@ -102,5 +103,5 @@ class Feature:
         else:
             self.vocab = list(v_counts.index)
         # The vocab must all be strings
-        self.vocab = [str(x) for x in self.vocab]
+        self.vocab = np.array([str(x) for x in self.vocab])
         self.is_built = True
