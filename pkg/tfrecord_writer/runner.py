@@ -6,14 +6,20 @@ from pkg.schema.schema import Schema
 
 logger = logging.getLogger(__name__)
 
-"""
-TFRecord Writer Steps
-    1. Load CSV in
-    2. Write to TFRecords
-"""
-
 
 def tfrecord_writer_runner(settings: Settings) -> None:
+    """
+    Convert data to TFRecords and save to disk
+    TFRecord Writer steps:
+      1. Load train and test data into memory
+      2. Write unique candidate TFrecords to disk
+      3. Write train/test TFRecords to disk
+
+    Parameters
+    ----------
+    settings: Settings
+      Settings for the run
+    """
     logger.info("--- TFRecord Writing Starting ---")
     # Load CSV data in and Schema
     train = pd.read_csv(settings.train_data_filepath)

@@ -10,6 +10,8 @@ from pkg.modelling.runner import modelling_runner, baseline_modelling_runner
 
 settings = Settings(
     raw_data_filepath="./data/transactions_train.csv",
+    articles_data_filepath="./data/articles.csv",
+    customers_data_filepath="./data/customers.csv",
     train_data_range=("2019-09-20", "2020-08-20"),
     test_data_range=("2020-08-21", "2020-09-21"),
     baseline_model_date_range=("2019-09-20", "2020-08-20"),
@@ -29,6 +31,7 @@ settings = Settings(
 
 schema = Schema(
     features=[
+        # Customer features
         Feature(
             "customer_id",
             tf.string,
@@ -36,10 +39,59 @@ schema = Schema(
             embedding_size=128,
         ),
         Feature(
+            "fashion_news_frequency",
+            tf.string,
+            FeatureFamily.QUERY,
+            embedding_size=2,
+        ),
+        Feature(
+            "postal_code", tf.string, FeatureFamily.QUERY, embedding_size=128
+        ),
+        # Article features
+        Feature(
             "article_id",
             tf.string,
             FeatureFamily.CANDIDATE,
             embedding_size=128,
+        ),
+        Feature(
+            "product_type_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=16,
+        ),
+        Feature(
+            "product_type_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=4,
+        ),
+        Feature(
+            "colour_group_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=8,
+        ),
+        Feature(
+            "department_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=32,
+        ),
+        Feature(
+            "index_name", tf.string, FeatureFamily.CANDIDATE, embedding_size=4
+        ),
+        Feature(
+            "section_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=16,
+        ),
+        Feature(
+            "garment_group_name",
+            tf.string,
+            FeatureFamily.CANDIDATE,
+            embedding_size=4,
         ),
     ],
     training_config=TrainingConfig(

@@ -11,6 +11,10 @@ class Settings:
     ----------
     raw_data_filepath: str
         Filepath to the raw data
+    articles_data_filepath: str
+        Filepath to the articles metadata
+    customers_data_filepath: str
+        Filepath to the customers metadata
     train_data_range: Tuple[str, str]
         Start and end date for training data
         In the format YYYY-MM-DD
@@ -49,6 +53,8 @@ class Settings:
     """
 
     raw_data_filepath: str
+    articles_data_filepath: str
+    customers_data_filepath: str
     train_data_range: Tuple[str, str]
     test_data_range: Tuple[str, str]
     baseline_model_date_range: Tuple[str, str]

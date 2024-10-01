@@ -70,6 +70,7 @@ class Feature:
                 )
         self.embedding_size = embedding_size
 
+        # FIXME: is_built logic breaks for numerical features
         if vocab:
             self.vocab = set(vocab)
             self.is_built = True

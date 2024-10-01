@@ -25,6 +25,14 @@ def etl_runner(settings: Settings) -> None:
     transactions = load_dataframe(
         settings.raw_data_filepath, "raw_transactions"
     )
+    # Load articles and customer metadata
+    articles = load_dataframe(settings.articles_data_filepath, "articles")
+    customers = load_dataframe(settings.customers_data_filepath, "customers")
+    # Join on to transactions
+    logger.info("Merging transactions with articles metadata")
+    transactions = transactions.merge(articles, how="inner", on="article_id")
+    logger.info("Merging transactions with customers metadata")
+    transactions = transactions.merge(customers, how="inner", on="customer_id")
     # Create train/test
     train = date_filter(
         transactions,
@@ -48,6 +56,10 @@ def etl_runner(settings: Settings) -> None:
 def build_schema_runner(settings: Settings, schema: Schema) -> None:
     """
     Build the schema from the training data
+    Build Schema steps:
+      1. Load data into memory
+      2. Create vocabs for categorical features
+      3. Save to disk
 
     Parameters
     ----------

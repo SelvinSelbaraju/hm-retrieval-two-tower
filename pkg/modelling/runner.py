@@ -1,8 +1,8 @@
 import os
 import logging
 from datetime import datetime
-import pandas as pd
 import tensorflow as tf
+from pkg.etl.transformations import load_dataframe, date_filter
 from pkg.modelling.tfrecord_dataset import TFRecordDatasetFactory
 from pkg.utils.settings import Settings
 from pkg.schema.schema import Schema
@@ -13,15 +13,21 @@ from pkg.modelling.metrics.index_recall import IndexRecall
 
 logger = logging.getLogger(__name__)
 
-"""
-Modelling steps:
-  1. Create TFRecord Datasets for train/test data
-  2. Create model class given Schema args
-  3. Train model and evaluate each epoch
-"""
-
 
 def modelling_runner(settings: Settings):
+    """
+    Train a Two-Tower Model and evaluate it
+    Modelling steps:
+        1. Create TFRecord Datasets for train/test/candidates data
+        2. Create Tensorboard callback for logs
+        3. Create model class given Schema args
+        4. Train model and evaluate each epoch
+
+    Parameters
+    ----------
+    settings: Settings
+      Settings for the run
+    """
     logger.info("--- Modelling Starting ---")
     schema = Schema.load_from_filepath(settings.schema_filepath)
     ds_factory = TFRecordDatasetFactory(schema.features)
@@ -36,6 +42,7 @@ def modelling_runner(settings: Settings):
         batch_size=schema.training_config.test_batch_size,
     )
     # Split test ds into tuples of query features and the candidate id
+    # This structure is used for evaluation
     test_ds = test_ds.map(
         lambda x: (
             {f.name: x[f.name] for f in schema.query_features},
@@ -46,6 +53,7 @@ def modelling_runner(settings: Settings):
         os.path.dirname(settings.candidate_tfrecord_path),
         batch_size=schema.training_config.candidate_batch_size,
     )
+    # Create Tensorboard Logs Callback
     logs = os.path.join(
         settings.tensorboard_logs_dir, datetime.now().strftime("%Y%m%d-%H%M%S")
     )
@@ -56,13 +64,18 @@ def modelling_runner(settings: Settings):
     )
     file_writer = tf.summary.create_file_writer(logs + "/metrics")
     file_writer.set_as_default()
+    # Create the model class from the schema
     model = TwoTowerModel.create_from_schema(schema)
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(
             from_logits=True, reduction=tf.keras.losses.Reduction.SUM
         ),
+        # legacy optimizers are faster in new versions of Tensorflow
+        # Need to set TF_USE_LEGACY_KERAS env var to True
+        # FIXME: Use Adam optimizer and set args using config
         optimizer=tf.keras.optimizers.legacy.Adagrad(learning_rate=0.05),
     )
+    # Train and evaluate each epoch
     for epoch in range(schema.training_config.epochs):
         # Make into 1D for recall calculation
         candidate_embeddings = candidate_ds.map(
@@ -87,29 +100,24 @@ def modelling_runner(settings: Settings):
     logger.info("--- Modelling Finishing ---")
 
 
-"""
-Baseline Modelling Runner Steps:
-1. Load the training data in
-2. Filter the data to a desired range
-3. Build an index from the training data
-4. Evaluate it
-"""
-
-
 def baseline_modelling_runner(settings: Settings):
+    """
+    Create and evaluate a popularity-based heuristic model
+    Baseline Modelling Runner Steps:
+    1. Load the training data in
+    2. Filter the data to a desired range
+    3. Build an index from the training data
+    4. Evaluate it
+    """
     logger.info("--- Baseline Modelling Starting ---")
-    logger.info(f"Loading in original data from {settings.raw_data_filepath}")
-    df = pd.read_csv(settings.raw_data_filepath)
+    df = load_dataframe(settings.raw_data_filepath, "raw_transactions")
     schema = Schema.load_from_filepath(settings.schema_filepath)
-    logger.info(
-        "Filtering data to be in range: "
-        f"({settings.baseline_model_date_range[0]},"
-        f"{settings.baseline_model_date_range[1]})"
-    )
-    candidates = df[
-        (df[settings.date_col_name] >= settings.baseline_model_date_range[0])
-        & (df[settings.date_col_name] <= settings.baseline_model_date_range[1])
-    ][settings.candidate_col_name]
+    candidates = date_filter(
+        df,
+        "raw_transactions",
+        settings.date_col_name,
+        settings.baseline_model_date_range,
+    )[settings.candidate_col_name]
     logger.info(
         f"Building Static Popularity Index using {len(candidates)} candidates"
     )
