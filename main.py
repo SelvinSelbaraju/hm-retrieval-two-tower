@@ -97,7 +97,8 @@ schema = Schema(
     training_config=TrainingConfig(
         train_batch_size=512,
         test_batch_size=2048,
-        optimizer=None,
+        optimizer_name="adagrad",
+        optimizer_kwargs={"learning_rate": 0.05},
         shuffle_size=100000,
         epochs=5,
     ),

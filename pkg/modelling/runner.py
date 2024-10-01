@@ -6,6 +6,7 @@ from pkg.etl.transformations import load_dataframe, date_filter
 from pkg.modelling.tfrecord_dataset import TFRecordDatasetFactory
 from pkg.utils.settings import Settings
 from pkg.schema.schema import Schema
+from pkg.modelling.optimizer_factory import OptimizerFactory
 from pkg.modelling.models.two_tower_model import TwoTowerModel
 from pkg.modelling.indices.brute_force import BruteForceIndex
 from pkg.modelling.indices.static_index import StaticIndex
@@ -66,14 +67,18 @@ def modelling_runner(settings: Settings):
     file_writer.set_as_default()
     # Create the model class from the schema
     model = TwoTowerModel.create_from_schema(schema)
+    os.environ["TF_USE_LEGACY_KERAS"] = (
+        "True"  # required for legacy optimizers
+    )
+    optimizer = OptimizerFactory.get_optimizer(
+        schema.training_config.optimizer_name,
+        schema.training_config.optimizer_kwargs,
+    )
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(
             from_logits=True, reduction=tf.keras.losses.Reduction.SUM
         ),
-        # legacy optimizers are faster in new versions of Tensorflow
-        # Need to set TF_USE_LEGACY_KERAS env var to True
-        # FIXME: Use Adam optimizer and set args using config
-        optimizer=tf.keras.optimizers.legacy.Adagrad(learning_rate=0.05),
+        optimizer=optimizer,
     )
     # Train and evaluate each epoch
     for epoch in range(schema.training_config.epochs):
