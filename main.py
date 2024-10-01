@@ -45,7 +45,7 @@ schema = Schema(
     training_config=TrainingConfig(
         train_batch_size=512,
         test_batch_size=2048,
-        optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.05),
+        optimizer=None,
         shuffle_size=100000,
         epochs=5,
     ),

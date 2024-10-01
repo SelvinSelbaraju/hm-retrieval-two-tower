@@ -106,9 +106,7 @@ class TwoTowerModel(AbstractKerasModel):
             )
             loss = self.compute_loss(y=labels, y_pred=y_pred)
 
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
         for metric in self.metrics:
             if metric.name == "loss":
                 metric.update_state(loss)

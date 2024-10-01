@@ -42,9 +42,7 @@ class Tower(AbstractKerasModel):
         # Use linear layer not Relu
         # Prevent units from dieing in final layer
         self.model_layers.append(
-            tf.keras.layers.Dense(
-                self.joint_embedding_size, activation="linear"
-            )
+            tf.keras.layers.Dense(self.joint_embedding_size, activation="relu")
         )
 
     def call(self, x: Dict[str, tf.Tensor]) -> tf.Tensor:

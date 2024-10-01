@@ -58,7 +58,9 @@ def modelling_runner(settings: Settings):
     file_writer.set_as_default()
     model = TwoTowerModel.create_from_schema(schema)
     model.compile(
-        loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+        loss=tf.keras.losses.CategoricalCrossentropy(
+            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+        ),
         optimizer=tf.keras.optimizers.legacy.Adagrad(learning_rate=0.05),
     )
     for epoch in range(schema.training_config.epochs):
