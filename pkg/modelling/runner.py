@@ -17,17 +17,17 @@ logger = logging.getLogger(__name__)
 
 def modelling_runner(settings: Settings):
     """
-    Train a Two-Tower Model and evaluate it
+    Train a Two-Tower Model and evaluate it.
     Modelling steps:
-        1. Create TFRecord Datasets for train/test/candidates data
-        2. Create Tensorboard callback for logs
-        3. Create model class given Schema args
-        4. Train model and evaluate each epoch
+        1. Create TFRecord Datasets for train/test/candidates data.
+        2. Create Tensorboard callback for logs.
+        3. Create model class given Schema args.
+        4. Train model and evaluate each epoch.
 
     Parameters
     ----------
     settings: Settings
-      Settings for the run
+      Settings for the run.
     """
     logger.info("--- Modelling Starting ---")
     schema = Schema.load_from_filepath(settings.schema_filepath)
@@ -44,6 +44,8 @@ def modelling_runner(settings: Settings):
     )
     # Split test ds into tuples of query features and the candidate id
     # This structure is used for evaluation
+    # Query features embed each query
+    # Candidate id verifies recall accuracy
     test_ds = test_ds.map(
         lambda x: (
             {f.name: x[f.name] for f in schema.query_features},
@@ -61,15 +63,12 @@ def modelling_runner(settings: Settings):
     tboard_callback = tf.keras.callbacks.TensorBoard(
         log_dir=logs,
         histogram_freq=1,
-        profile_batch="20,40",  # FIXME: Make dynamic
+        profile_batch="20,40",
     )
     file_writer = tf.summary.create_file_writer(logs + "/metrics")
     file_writer.set_as_default()
     # Create the model class from the schema
     model = TwoTowerModel.create_from_schema(schema)
-    os.environ["TF_USE_LEGACY_KERAS"] = (
-        "True"  # required for legacy optimizers
-    )
     optimizer = OptimizerFactory.get_optimizer(
         schema.training_config.optimizer_name,
         schema.training_config.optimizer_kwargs,
@@ -82,7 +81,8 @@ def modelling_runner(settings: Settings):
     )
     # Train and evaluate each epoch
     for epoch in range(schema.training_config.epochs):
-        # Make into 1D for recall calculation
+        # Make unique candidate ids 1D
+        # Needs to be 1D for recall calculation
         candidate_embeddings = candidate_ds.map(
             lambda x: (
                 tf.reshape(x[settings.candidate_col_name], (-1,)),
@@ -101,18 +101,19 @@ def modelling_runner(settings: Settings):
         model.fit(train_ds, epochs=1, callbacks=[tboard_callback])
         model.save(settings.trained_model_path)
         index.save(settings.index_path)
+    # Need to log final recall after training
     metric_calc.log_metric(schema.training_config.epochs + 1)
     logger.info("--- Modelling Finishing ---")
 
 
 def baseline_modelling_runner(settings: Settings):
     """
-    Create and evaluate a popularity-based heuristic model
+    Create and evaluate a popularity-based heuristic model.
     Baseline Modelling Runner Steps:
-    1. Load the training data in
-    2. Filter the data to a desired range
-    3. Build an index from the training data
-    4. Evaluate it
+    1. Load the training data in.
+    2. Filter the data to a desired range.
+    3. Build an index from the training data.
+    4. Evaluate it.
     """
     logger.info("--- Baseline Modelling Starting ---")
     df = load_dataframe(settings.raw_data_filepath, "raw_transactions")
