@@ -1,41 +1,43 @@
 from typing import Optional, List
 from enum import Enum
+import logging
 import pandas as pd
 import numpy as np
 import tensorflow as tf
 
+logger = logging.getLogger(__name__)
+
 
 class FeatureFamily(Enum):
     """
-    The families which features can be part of
-    Features can either be query features or candidate features
+    The families which features can be part of.
+    Features can either be query features or candidate features.
     """
 
     QUERY = "query"
     CANDIDATE = "candidate"
 
 
-# For now, Feature has a name, vocabulary, data type
 class Feature:
     """
-    Class which contains all of the information for an input feature
+    Class which contains all of the information for an input feature.
 
     Parameters
     ----------
     name: str
-        name of the feature
+        Name of the feature.
     dtype: tf.dtypes.DType
-        Tensorflow dtype, must be one of valid types
+        Tensorflow dtype, must be one of valid types.
     feature_family: FeatureFamily
-        Must be one of the families specified in the FeatureFamily enum
+        Must be one of the families specified in the FeatureFamily enum.
     embedding_size: Optional[int]
-        For categorical, embedding dimension
+        For categorical, embedding dimension.
     vocab: Optional[List[str]]
-        For categorical, values the feature can take
-        Any new values seen will be set as unknown in the model
+        For categorical, values the feature can take.
+        Any new values seen will be set as unknown in the model.
     max_vocab_size: Optional[int]
-        Max size of vocab, useful for limiting the size
-        Ignored if the vocab is provided up front
+        Max size of vocab, useful for limiting the size.
+        Ignored if the vocab is provided up front.
     """
 
     VALID_DTYPES = [tf.string, tf.float32]
@@ -58,7 +60,7 @@ class Feature:
 
         if feature_family not in FeatureFamily:
             raise ValueError(
-                f"feature family {feature_family} not valid. "
+                f"feature_family {feature_family} not valid. "
                 f"Must be one of {FeatureFamily._member_names_}"
             )
         self.feature_family = feature_family
@@ -69,14 +71,7 @@ class Feature:
                     f"Got embedding size, dtype must be tf.string got {dtype}"
                 )
         self.embedding_size = embedding_size
-
-        # FIXME: is_built logic breaks for numerical features
-        if vocab:
-            self.vocab = set(vocab)
-            self.is_built = True
-        else:
-            self.vocab = vocab
-            self.is_built = False
+        self._init_vocab(vocab)
 
         if max_vocab_size:
             if not isinstance(max_vocab_size, int):
@@ -85,14 +80,37 @@ class Feature:
                 )
         self.max_vocab_size = max_vocab_size
 
+    def _init_vocab(self, vocab: Optional[List[str]] = None) -> None:
+        """
+        Check the feature's dtype and init the vocab.
+
+        Parameters
+        ----------
+        vocab: Optional[List[str]] = None
+            The vocab passed to the feature's init method.
+        """
+        if self.dtype != tf.string:
+            logger.info(
+                f"Ignoring vocab passed for non-string feature {self.name}"
+            )
+            self.vocab = None
+            self.is_built = True
+        else:
+            if vocab:
+                self.vocab = set(vocab)
+                self.is_built = True
+            else:
+                self.vocab = None
+                self.is_built = False
+
     def set_vocab_from_dataframe(self, df: pd.DataFrame) -> None:
         """
-        Set the vocabulary from a Pandas Dataframe
+        Set the vocabulary from a Pandas Dataframe.
 
         Parameters
         ----------
         df: pd.DataFrame
-            Dataframe containing data to build the vocab from
+            Dataframe containing data to build the vocab from.
         """
         if self.name not in df.columns:
             raise ValueError(
@@ -104,5 +122,6 @@ class Feature:
         else:
             self.vocab = list(v_counts.index)
         # The vocab must all be strings
+        # Numpy array makes StringLookup layer MUCH faster vs list
         self.vocab = np.array([str(x) for x in self.vocab])
         self.is_built = True
