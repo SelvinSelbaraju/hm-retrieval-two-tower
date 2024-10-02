@@ -10,22 +10,22 @@ from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
 class TwoTowerModel(AbstractKerasModel):
     """
-    Two Tower Model class
+    Two Tower Model class.
 
     Parameters
     ----------
     query_features: List[str]
-        Features for the query tower
+        Features for the query tower.
     candidate_features: List[str]
-        Features for the candidate tower
+        Features for the candidate tower.
     joint_embedding_size: int
-        Joint embedding size which gets dot product
+        Joint embedding size which gets dot product.
     query_tower_units: Optional[List[int]]
-        Hidden units for the query tower
+        Hidden units for the query tower.
     candidate_tower_units: Optional[List[int]]
-        Hidden units for the candidate tower
+        Hidden units for the candidate tower.
     candidate_prob_lookup: Optional[Dict[str, Float]]
-        If provided, will perform logQ correction before passing to loss
+        If provided, will perform logQ correction before passing to loss.
     """
 
     def __init__(
@@ -65,6 +65,24 @@ class TwoTowerModel(AbstractKerasModel):
     def call(
         self, x: Dict[str, tf.Tensor], training: bool = True
     ) -> tf.Tensor:
+        """
+        Pass inputs through the model.
+
+        Parameters
+        ----------
+        x: Dict[str, tf.Tensor]
+            Dict of features to tensors.
+        training: bool
+            Whether the model is in training model.
+            Defaults to True.
+        Returns
+        -------
+        outputs: tf.Tensor
+            The score of the ith query with the jth candidate.
+            (Q x C) tensor, Q is num_queries, C is num_candidates.
+            In training, Q = C = B, B is the batch_size.
+            This is because there is one query/candidate pair per row.
+        """
         query_features = {f.name: x[f.name] for f in self.query_features}
         candidate_features = {
             f.name: x[f.name] for f in self.candidate_features
@@ -75,19 +93,19 @@ class TwoTowerModel(AbstractKerasModel):
 
     def train_step(self, data: Dict[str, tf.Tensor]) -> Dict[str, float]:
         """
-        Custom train step to overwrite default behaviour
-        This allows to do in-batch negative sampling
+        Custom train step to overwrite default behaviour.
+        This allows to do in-batch negative sampling.
 
         Parameters
         ----------
         data: Dict[str, tf.Tensor]
-            Data from a TF Dataset containing the features
-            Does not contain labels as each instance is a positive
+            Data from a TF Dataset containing the features.
+            Does not contain labels as each instance is a positive.
 
         Returns
         -------
         metrics: Dict[str, float]
-            The metrics for all of the provided metrics in compile
+            The metrics for all of the provided metrics in compile.
         """
         with tf.GradientTape() as tape:
             y_pred = self(data, training=True)
@@ -116,6 +134,18 @@ class TwoTowerModel(AbstractKerasModel):
 
     @classmethod
     def create_from_schema(cls, schema: Schema) -> "TwoTowerModel":
+        """
+        Class method to create an instance from a Schema obj.
+
+        Parameters
+        ----------
+        schema: Schema
+            Schema object with features and model config.
+        Returns
+        -------
+        model: TwoTowerModel
+            Instance of the TwoTowerModel class.
+        """
         return TwoTowerModel(
             query_features=schema.query_features,
             candidate_features=schema.candidate_features,
@@ -126,6 +156,14 @@ class TwoTowerModel(AbstractKerasModel):
         )
 
     def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
+        """
+        Given query, candidate features, return the input signature.
+
+        Returns
+        -------
+        input_signature: Dict[str, tf.TensorSpec]
+            A dict mapping features to TensorSpec objs.
+        """
         input_signature = {}
         for f in self.candidate_features + self.query_features:
             input_signature[f.name] = tf.TensorSpec(
@@ -135,13 +173,15 @@ class TwoTowerModel(AbstractKerasModel):
 
     def save(self, model_path: str) -> None:
         """
-        Create a directory at the model_path
-        Save the two_tower model, and each of the towers separately
+        Create a directory at the model_path.
+        Save the two_tower model, and each of the towers separately.
+        Saved in two_tower, query_tower, candidate_tower dirs
+            respectively.
 
         Parameters
         ----------
         model_path: str
-            The path to save the model at
+            The path to save the model at.
         """
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         two_tower_model_path = os.path.join(
