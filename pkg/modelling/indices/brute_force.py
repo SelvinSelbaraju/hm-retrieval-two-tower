@@ -5,15 +5,15 @@ from pkg.modelling.models.abstract_keras_model import AbstractKerasModel
 
 class BruteForceIndex(AbstractKerasModel):
     """
-    Store ids and embeddings for candidates
-    At inference, return the top k ids for the query
+    Store ids and embeddings for candidates.
+    At inference, return the top k ids for the query.
 
     Parameters
     ----------
     candidate_model: Optional[tf.keras.Model]
-        Optional model for embedding candidates
+        Optional model for embedding candidates.
     k: int
-        The number of results the index should return
+        The number of results the index should return.
     """
 
     def __init__(
@@ -30,12 +30,12 @@ class BruteForceIndex(AbstractKerasModel):
 
     def _index(self, id_candidate_pairs: tf.data.Dataset) -> None:
         """
-        Store ids and candidate embeddings in model state
+        Store ids and candidate embeddings in model state.
 
         Parameters
         ----------
         id_candidate_pairs: tf.data.Dataset
-            TF Dataset which yields tuples of (id,candidate_embedding)
+            TF Dataset which yields tuples of (id,candidate_embedding).
         """
         identifiers, candidates = self.get_id_embeddings_from_dataset(
             id_candidate_pairs
@@ -55,12 +55,15 @@ class BruteForceIndex(AbstractKerasModel):
         self, queries: Dict[str, tf.Tensor], training: bool = False
     ) -> tf.Tensor:
         """
-        Return the top k candidates for a set of queries
+        Return the top k candidates for a set of queries.
 
         Parameters
         ----------
         queries: tf.Tensor
-            Must be a dict of tensors for the query tower
+            Must be a dict of tensors for the query tower.
+        training: bool
+            Placeholder to match call method of keras model class.
+            Set to False.
         """
         query_embeddings = self.query_model(queries)
         scores = tf.linalg.matmul(
@@ -77,12 +80,12 @@ class BruteForceIndex(AbstractKerasModel):
         candidates: tf.data.Dataset,
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
-        From a TF Dataset of (id,embedding), return them separately
+        From a TF Dataset of (id,embedding), return them separately.
 
         Parameters
         ----------
         candidates: tf.data.Dataset
-            Returns tuples of (id,embedding) pairs
+            Returns tuples of (id,embedding) pairs.
         """
         identifiers_and_candidates = list(candidates)
         candidates = tf.concat(
@@ -96,4 +99,9 @@ class BruteForceIndex(AbstractKerasModel):
         return identifiers, candidates
 
     def get_input_signature(self) -> Dict[str, tf.TensorSpec]:
+        """
+        Fetch the input signature for the index.
+        Used for saving in a servable format.
+        The inputs should match those for the query model.
+        """
         return self.query_model.get_input_signature()
