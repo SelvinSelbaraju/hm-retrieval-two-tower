@@ -59,11 +59,18 @@ class BruteForceIndex(AbstractKerasModel):
 
         Parameters
         ----------
-        queries: tf.Tensor
+        queries: Dict[str, tf.Tensor]
             Must be a dict of tensors for the query tower.
+            Each tensor has shape (B x 1).
         training: bool
             Placeholder to match call method of keras model class.
             Set to False.
+
+        Returns
+        -------
+        results: tf.Tensor
+            The top K candidates for each query.
+            Shape is (B x K).
         """
         query_embeddings = self.query_model(queries)
         scores = tf.linalg.matmul(

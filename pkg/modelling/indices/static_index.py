@@ -43,6 +43,13 @@ class StaticIndex(AbstractKerasModel):
         ----------
         x: Dict[str, tf.Tensor]
             Dict of input name as key, tf.Tensor as values.
+            Each tensor has shape (B x 1).
+
+        Returns
+        -------
+        results tf.Tensor
+            The top candidates.
+            Tensor has shape (B x K).
         """
         num_results = tf.shape(x[self.input_features[0].name])[0]
         return tf.tile(self.candidates[:, : self.k], (num_results, 1))
@@ -71,6 +78,11 @@ class StaticIndex(AbstractKerasModel):
             Schema for modelling.
         s: pd.Series
             The column of the transactions df to build the index.
+
+        Returns
+        -------
+        index: PopularityIndex
+            An instance of a PopularityIndex obj.
         """
         ids = s.value_counts().index
         ids_tensor = tf.constant(

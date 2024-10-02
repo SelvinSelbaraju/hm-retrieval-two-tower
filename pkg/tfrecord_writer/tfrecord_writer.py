@@ -35,6 +35,11 @@ class TFRecordWriter:
         dtype: tf.dtypes.DType
             The Tensorflow dtype to use.
             Must be one of the dtypes set in the Feature obj.
+
+        Returns
+        -------
+        feature: tf.train.Feature
+            A Feature protobuf message with the feature val.
         """
         if dtype == tf.string:
             val = str(feature_val).encode()
@@ -56,6 +61,11 @@ class TFRecordWriter:
         ----------
         row: tuple
            NamedTuple row from pd.DataFrame.itertuples().
+
+        Returns
+        -------
+        example: bytes
+            The row of data as a serialized Example message.
         """
         features = {
             feature.name: self._parse_feature(

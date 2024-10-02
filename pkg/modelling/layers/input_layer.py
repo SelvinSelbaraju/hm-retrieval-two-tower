@@ -5,12 +5,12 @@ from pkg.schema.features import Feature
 
 class InputLayer(tf.keras.layers.Layer):
     """
-    Convert a dict of tensors, embed categorical and concat together
+    Convert a dict of tensors, embed categorical and concat together.
 
     Parameters
     ----------
     features: List[Feature]
-        List of Feature objs containing tf dtypes
+        List of Feature objs containing tf dtypes.
     """
 
     def __init__(self, features: List[Feature]):
@@ -22,6 +22,10 @@ class InputLayer(tf.keras.layers.Layer):
         self._init_embedding_layers()
 
     def _init_embedding_layers(self) -> None:
+        """
+        Initialise embedding layers for each str feature.
+        Each embedding layer is a StringLookup then Embedding.
+        """
         self.embedding_layers = {}
         for f in self.categorical_features:
             self.embedding_layers[f.name] = tf.keras.Sequential(
@@ -39,6 +43,21 @@ class InputLayer(tf.keras.layers.Layer):
             )
 
     def call(self, x: Dict[str, tf.Tensor]) -> tf.Tensor:
+        """
+        Pass original dict inputs through the layer.
+        Returns a tensor.
+
+        Parameters
+        ----------
+        x: Dict[str, tf.Tensor]
+            Dict mapping feature names to tensors.
+
+        Returns
+        -------
+        inputs: tf.Tensor
+            The inputs as a tensor of tf.float32.
+            Str inputs will be embedded.
+        """
         inputs = []
         # Simply append numerical features
         for f in self.numerical_features:
