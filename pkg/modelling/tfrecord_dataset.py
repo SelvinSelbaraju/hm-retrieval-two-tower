@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 class TFRecordDatasetFactory:
     """
-    Creates TFRecord Datasets given a list of Feature objs
+    Creates TFRecord Datasets given a list of Feature objs.
 
     Parameters
     ----------
     features: List[Feature]
-        List of Feature objs containing tf dtypes
+        List of Feature objs containing tf dtypes.
     """
 
     def __init__(self, features: List[Feature]):
@@ -23,8 +23,13 @@ class TFRecordDatasetFactory:
 
     def _create_feature_description(self) -> Dict[str, tf.io.FixedLenFeature]:
         """
-        Create the Feature Description to parse raw TFRecords
-        The shape is (1,), so becomes (1,1) when batched
+        Create the Feature Description to parse raw TFRecords.
+        The shape is (1,), so becomes (1,1) when batched.
+
+        Returns
+        -------
+        feature_description: Dict[str, tf.io.FixedLenFeature]
+            A dict describing each feature's shape and type when parsed.
         """
         return {
             feature.name: tf.io.FixedLenFeature([1], feature.dtype)
@@ -35,12 +40,17 @@ class TFRecordDatasetFactory:
         self, example_proto: tf.train.Example
     ) -> Dict[str, tf.Tensor]:
         """
-        Parse a raw TFRecord proto
+        Parse a raw TFRecord proto from a TFRecord file.
 
         Parameters
         ----------
         example_proto: tf.train.Example
-          A single raw TFRecord example
+          A single raw TFRecord example.
+
+        Returns
+        -------
+        parsed_example: Dict[str, tf.Tensor]
+            A dict of features to tensors.
         """
         return tf.io.parse_single_example(
             example_proto, self.feature_description
@@ -53,17 +63,22 @@ class TFRecordDatasetFactory:
         shuffle_size: Optional[int] = None,
     ) -> tf.data.TFRecordDataset:
         """
-        Create a TFRecord Dataset from a directory of TFRecords
-        Returns a TFRecordDataset object
+        Create a TFRecord Dataset from a directory of TFRecords.
+        Returns a TFRecordDataset object.
 
         Parameters
         ----------
         file_dir: str
-            Directory where TFRecords are stored
+            Directory where TFRecords are stored.
         batch_size: Optional[int]
-            Yield batches of these size if provided
+            Yield batches of these size if provided.
         shuffle_size: Optional[int]
-            Shuffle buffer of this size if provided
+            Shuffle buffer of this size if provided.
+
+        Returns
+        -------
+        ds: tf.data.TFRecordDataset
+            TF Dataset which lazily loads data.
         """
         filenames = [
             os.path.join(file_dir, file)

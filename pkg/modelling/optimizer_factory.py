@@ -6,6 +6,11 @@ logger = logging.getLogger(__name__)
 
 
 class OptimizerFactory:
+    """
+    Fetch a supported optimizer instance using config.
+    Some kwargs are required.
+    """
+
     # Legacy optimizers are currently much faster
     _supported_optimizers = {
         "adam": tf.keras.optimizers.legacy.Adam,
@@ -18,6 +23,23 @@ class OptimizerFactory:
     def get_optimizer(
         cls, optimizer_name: str, optimizer_kwargs: Dict[str, Any]
     ) -> tf.keras.optimizers.legacy.Optimizer:
+        """
+        Class method to get an optimizer.
+
+        Parameters
+        ----------
+        optimizer_name: str
+            The name of the optimizer.
+            Must match its name in the class var's optimizer dict.
+        optimizer_kwargs: Dict[str, Any]
+            Dict of kwargs for the optimizer instance.
+            Must have kwargs in class var's kwargs list.
+
+        Returns
+        -------
+        optimizer: tf.keras.optimizers.legacy.Optimizer
+            An instance of one of the supported optimizers.
+        """
         if optimizer_name not in cls._supported_optimizers:
             raise ValueError(
                 "name must be one of "
