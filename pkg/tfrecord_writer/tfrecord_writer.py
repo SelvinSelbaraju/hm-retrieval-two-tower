@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 class TFRecordWriter:
     """
-    Obj for creating TFRecords
+    Obj for writing TFRecords to disk.
 
     Parameters
     ----------
     features: List[Feature]
-        List of feature objects
-        Usually come from a Schema obj
+        List of feature objects.
+        Usually come from a Schema obj.
     """
 
     def __init__(self, features: List[Feature]):
@@ -26,15 +26,15 @@ class TFRecordWriter:
         self, feature_val: Union[str, float, int], dtype: tf.dtypes.DType
     ) -> tf.train.Feature:
         """
-        Given a feature val, return a tf.train.Feature of the correct dtype
+        Given a feature val, return a tf.train.Feature of the correct dtype.
 
         Parameters
         ----------
         feature_val: Union[str, float, int]
-            The piece of data to convert
+            The piece of data to convert.
         dtype: tf.dtypes.DType
-            The Tensorflow dtype to use
-            Must be one of the dtypes set in the Feature obj
+            The Tensorflow dtype to use.
+            Must be one of the dtypes set in the Feature obj.
         """
         if dtype == tf.string:
             val = str(feature_val).encode()
@@ -49,13 +49,13 @@ class TFRecordWriter:
 
     def _get_features_from_row(self, row: tuple) -> bytes:
         """
-        Given a NamedTuple row from a Pandas DataFrame
-        Return a TFRecord Example Serialized to Bytes
+        Given a NamedTuple row from a Pandas DataFrame,
+        return a TFRecord Example serialized to Bytes.
 
         Parameters
         ----------
         row: tuple
-           NamedTuple row from pd.DataFrame.itertuples()
+           NamedTuple row from pd.DataFrame.itertuples().
         """
         features = {
             feature.name: self._parse_feature(
@@ -74,18 +74,18 @@ class TFRecordWriter:
         max_file_size: Optional[int] = None,
     ) -> None:
         """
-        Write data to TFRecords based on features in the schema
-        Saves TFRecord files in the filepath
-        Number of examples in a file can be limited into partitions
-        The suffix contains the partition number
+        Write data to TFRecords based on features in the schema.
+        Saves TFRecord files in the filepath.
+        Number of examples in a file can be limited into partitions.
+        The suffix contains the partition number.
 
         Parameters
         ----------
         df: pd.DataFrame
-            Data to write to TFRecords
+            Data to write to TFRecords.
         filepath: str
-            Filepath to store TFRecords
-            Must not have .tfrecord suffix, removed if so
+            Filepath to store TFRecords.
+            Must not have .tfrecord suffix, removed if so.
         """
         logger.info("Removing .tfrecord suffix if present")
         filepath = filepath.replace(".tfrecord", "")
