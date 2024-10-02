@@ -1,51 +1,53 @@
-from typing import Dict, List
+from typing import Dict, List, Union, Optional
 import logging
 import tensorflow as tf
 from pkg.modelling.indices.brute_force import BruteForceIndex
+from pkg.modelling.indices.static_index import StaticIndex
 
 logger = logging.getLogger(__name__)
 
 
 class IndexRecall:
     """
-    Given an index, calculate a recall metric
+    Given an index, calculate a recall@K metric.
 
     Parameters
     ----------
-    index: BruteForceIndex
-        The index to calculate metrics for
+    index: Union[BruteForceIndex, StaticIndex]
+        The index to calculate metrics for.
     ks: List[int]
-        The top ks to calculate recall at
+        The top Ks to calculate recall at.
     """
 
     def __init__(
         self,
-        index: BruteForceIndex,
+        index: Union[BruteForceIndex, StaticIndex],
         ks: List[int],
     ):
         self.index = index
         self.ks = ks
-        if max(ks) > index.k:
-            logger.info(f"Overwriting index k to {max(ks)}")
-            index.k = max(ks)
-        self.max_k = max(ks)
         self.hits = {k: tf.constant(0, dtype=tf.int32) for k in ks}
         self.seen = tf.constant(0, dtype=tf.int32)
         self.metric = {k: tf.constant(0, dtype=tf.int32) for k in ks}
 
     def __call__(
         self, queries: Dict[str, tf.Tensor], true_candidate_ids: tf.Tensor
-    ) -> float:
+    ) -> Dict[int, float]:
         """
         Given queries and the true candidate ids, return the recall
 
         Parameters
         ----------
-        queries: Dict[str,tf.Tensor]
-            Dict of query features to their values
+        queries: Dict[str, tf.Tensor]
+            Dict of query features to their values.
         true_candidate_ids: tf.Tensor
-            Tensor containing the true candidate for each query
-            Shape should be [num_queries,1]
+            Tensor containing the true candidate for each query.
+            Shape should be (num_queries,).
+
+        Returns
+        -------
+        metric: Dict[int, float]
+            A dict with K as the key, and recall@K.
         """
         candidates = self.index(queries)
         self.seen += true_candidate_ids.shape[0]
@@ -56,9 +58,19 @@ class IndexRecall:
             self.metric[k] = self.hits[k] / self.seen
         return self.metric
 
-    def log_metric(self, epoch: int, to_tensorboard: bool = True) -> None:
+    def log_metric(
+        self, epoch: Optional[int] = None, to_tensorboard: bool = True
+    ) -> None:
         """
-        Log all of the k values to Tensorboard
+        Log all of the recall@K values to Tensorboard.
+
+        Parameters
+        ----------
+        epoch: Optional[int]
+            Epoch this metric is for. Used for logging.
+        to_tensorboard: bool
+            Whether to log the metric to Tensorboard.
+            Defaults to True.
         """
         for k in self.ks:
             logger.info(
