@@ -10,25 +10,25 @@ def date_filter(
     df: pd.DataFrame, df_name: str, date_col: str, date_range: Tuple[str, str]
 ) -> pd.DataFrame:
     """
-    Filter a df into a specified date rage
+    Filter a df into a specified date range.
 
     Parameters
     ----------
     df: pd.DataFrame
-        The dataframe to split
+        The dataframe to split.
     df_name: pd.DataFrame
-        The name of the dataframe
-        Used for logging
+        The name of the dataframe.
+        Used for logging.
     date_col: str
-        The name of the date col in df
+        The name of the date col in df.
     date_range: Tuple[str, str]
         The start and end date
-        In the format YYYY-MM-DD
+        in the format YYYY-MM-DD.
 
     Returns
     -------
     filtered: pd.DataFrame
-        The df filtered
+        The df filtered.
     """
     logger.info(
         f"Creating df {df_name} from: "
@@ -43,21 +43,21 @@ def date_filter(
 
 def load_dataframe(path: str, df_name: str) -> pd.DataFrame:
     """
-    Load the datframe from the specified CSV path
-    Simple wrapper to include logging
+    Load the datframe from the specified CSV path.
+    Simple wrapper to include logging.
 
     Parameters
     ----------
     path: str
-        The path where the raw CSV is stored
+        The path where the raw CSV is stored.
     df_name: str
-        The name of the dataframe
-        Used for logging
+        The name of the dataframe.
+        Used for logging.
 
     Returns
     -------
     df: pd.DataFrame
-        The loaded in dataframe
+        The loaded in dataframe.
     """
     logger.info(f"Loading df {df_name} from {path}")
     df = pd.read_csv(path)
@@ -68,21 +68,21 @@ def save_dataframe(
     df: pd.DataFrame, df_name: str, date_col: str, path: str
 ) -> None:
     """
-    Save the df at the desired location
-    Create the directory if does not exist
+    Save the df at the desired location.
+    Create the directory if does not exist.
 
     Parameters
     ----------
     df: pd.DataFrame
-        The dataframe to save
+        The dataframe to save.
     df_name: str
-        The name of the dataframe
-        Used for logging
+        The name of the dataframe.
+        Used for logging.
     date_col: str
-        The column containing the date
-        Used for logging
+        The column containing the date.
+        Used for logging.
     path: str
-        The path to save the dataframe
+        The path to save the dataframe.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     logger.info(

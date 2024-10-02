@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 from pkg.schema.schema import Schema
 from pkg.utils.settings import Settings
 from pkg.etl.transformations import date_filter, load_dataframe, save_dataframe
@@ -9,23 +8,22 @@ logger = logging.getLogger(__name__)
 
 def etl_runner(settings: Settings) -> None:
     """
-    Given the settings, output train/test data
+    Given the settings, output train/test data.
     ETL steps:
-      1. Load data into memory
-      2. Create train/test data from settings
-      3. Save to disk
+      1. Load data into memory.
+      2. Create train/test data from settings.
+      3. Save to disk.
 
     Parameters
     ----------
     settings: Settings
-      Settings for the run
+      Settings for the run.
     """
     logger.info("--- ETL Starting ---")
     # Load the data
     transactions = load_dataframe(
         settings.raw_data_filepath, "raw_transactions"
     )
-    # Load articles and customer metadata
     articles = load_dataframe(settings.articles_data_filepath, "articles")
     customers = load_dataframe(settings.customers_data_filepath, "customers")
     # Join on to transactions
@@ -55,22 +53,23 @@ def etl_runner(settings: Settings) -> None:
 
 def build_schema_runner(settings: Settings, schema: Schema) -> None:
     """
-    Build the schema from the training data
+    Build the schema from the training data.
     Build Schema steps:
-      1. Load data into memory
-      2. Create vocabs for categorical features
-      3. Save to disk
+      1. Load data into memory.
+      2. Create vocabs for categorical features.
+      3. Calculate candidate probs for logQ correction
+      4. Save to disk.
 
     Parameters
     ----------
     settings: Settings
-      Settings for the run
+      Settings for the run.
     schema: Schema
-      Schema containing features
+      Schema containing features.
     """
     logger.info("--- Build Schema Starting ---")
+    train = load_dataframe(settings.train_data_filepath, "train")
     logger.info("Building schema from training data")
-    train = pd.read_csv(settings.train_data_filepath)
     schema.build_features_from_dataframe(train)
     logger.info("Calculating candidate probs from training data")
     probs = train[settings.candidate_col_name].value_counts() / len(train)
