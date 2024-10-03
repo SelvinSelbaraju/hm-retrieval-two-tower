@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "hm-retrieval-two-tower"
+version = "0.1.0"
+description = ""
+authors = ["Selvin Selbaraju <selvinoselbaraju@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "pkg" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+tensorflow-macos = "^2.16.2"
+pandas = "^2.2.2"
+matplotlib = "^3.9.2"
+seaborn = "^0.13.2"
+tensorboard-plugin-profile = "^2.17.0"
+tf-keras = "2.16.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+pytest = "^8.3.3"
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

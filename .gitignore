@@ -1,2 +1,6 @@
 # Testing
 *.pyc
+data/
+trained_models/
+logs/
+*.ipynb
