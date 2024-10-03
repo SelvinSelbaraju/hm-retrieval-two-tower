@@ -100,7 +100,7 @@ schema = Schema(
         optimizer_name="adagrad",
         optimizer_kwargs={"learning_rate": 0.05},
         shuffle_size=100000,
-        epochs=5,
+        epochs=1,
     ),
     model_config=ModelConfig(
         joint_embedding_size=128,
