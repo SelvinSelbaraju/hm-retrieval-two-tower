@@ -87,6 +87,7 @@ def test_recall_calculation(simple_static_index, dummy_test_ds):
     expected = {
         1: tf.constant(0.2, dtype=tf.float64),
         2: tf.constant(0.6, dtype=tf.float64),
+        5: tf.constant(0.6, dtype=tf.float64),
     }
     for k in expected:
         assert (
