@@ -13,6 +13,7 @@ pandas = "^2.2.2"
 matplotlib = "^3.9.2"
 seaborn = "^0.13.2"
 tensorboard-plugin-profile = "^2.17.0"
+tf-keras = "2.16.0"
 
 
 [tool.poetry.group.dev.dependencies]
