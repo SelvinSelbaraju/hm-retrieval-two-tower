@@ -68,7 +68,9 @@ def modelling_runner(settings: Settings):
     file_writer = tf.summary.create_file_writer(logs + "/metrics")
     file_writer.set_as_default()
     # Create the model class from the schema
-    model = TwoTowerModel.create_from_schema(schema)
+    model = TwoTowerModel.create_from_schema(
+        schema, settings.candidate_col_name
+    )
     optimizer = OptimizerFactory.get_optimizer(
         schema.training_config.optimizer_name,
         schema.training_config.optimizer_kwargs,
